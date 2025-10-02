@@ -1,3 +1,38 @@
+// Shared utility functions
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    container.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Modal open/close helpers
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('active');
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+}
+
+// Keyboard shortcut: ESC closes all modals
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => modal.classList.remove('active'));
+    }
+});
+
+// Export for other modules
+window.UnitlyUtils = { showNotification, openModal, closeModal };
+
 // Add click functionality to buttons
 document.querySelectorAll('.action-btn').forEach(button => {
     button.addEventListener('click', function(e) {
@@ -375,4 +410,414 @@ console.log('Footer JavaScript loaded successfully!');
                 });
             }
         });
-      
+
+        
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal Management
+    const modals = {
+        sms: document.getElementById('sms-modal'),
+        landlord: document.getElementById('landlord-modal'),
+        password: document.getElementById('password-modal'),
+        bulk: document.getElementById('bulk-modal'),
+        calendar: document.getElementById('calendar-modal')
+    };
+
+    // Button Event Listeners
+    const buttons = {
+        smsVerify: document.getElementById('sms-verify-btn'),
+        addLandlord: document.getElementById('add-landlord-btn'),
+        managePasswords: document.getElementById('manage-passwords-btn'),
+        bulkActions: document.getElementById('bulk-actions-btn'),
+        tenantView: document.getElementById('tenant-view-btn'),
+        landlordView: document.getElementById('landlord-view-btn'),
+        verifyOtp: document.getElementById('verify-otp-btn'),
+        saveLandlord: document.getElementById('save-landlord-btn')
+    };
+
+    // View Management
+    const views = {
+        landlordManagement: document.getElementById('landlord-management'),
+        tenantManagement: document.getElementById('tenant-management')
+    };
+
+    // Modal Functions
+    function openModal(modalName) {
+        if (modals[modalName]) {
+            modals[modalName].style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeModal(modalName) {
+        if (modals[modalName]) {
+            modals[modalName].style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function closeAllModals() {
+        Object.keys(modals).forEach(modalName => {
+            closeModal(modalName);
+        });
+    }
+
+    // Event Listeners for Opening Modals
+    if (buttons.smsVerify) {
+        buttons.smsVerify.addEventListener('click', () => openModal('sms'));
+    }
+
+    if (buttons.addLandlord) {
+        buttons.addLandlord.addEventListener('click', () => openModal('landlord'));
+    }
+
+    if (buttons.managePasswords) {
+        buttons.managePasswords.addEventListener('click', () => openModal('password'));
+    }
+
+    if (buttons.bulkActions) {
+        buttons.bulkActions.addEventListener('click', () => openModal('bulk'));
+    }
+
+    // Event Listeners for Closing Modals
+    const closeButtons = [
+        'close-sms-modal',
+        'close-landlord-modal', 
+        'close-password-modal',
+        'close-bulk-modal',
+        'close-calendar-modal'
+    ];
+
+    closeButtons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.addEventListener('click', closeAllModals);
+        }
+    });
+
+    // Close modals when clicking outside
+    Object.values(modals).forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeAllModals();
+                }
+            });
+        }
+    });
+
+    // View Switching
+    if (buttons.tenantView) {
+        buttons.tenantView.addEventListener('click', function() {
+            if (views.landlordManagement) views.landlordManagement.style.display = 'none';
+            if (views.tenantManagement) views.tenantManagement.style.display = 'block';
+            showNotification('Switched to Tenant Management View', 'success');
+        });
+    }
+
+    if (buttons.landlordView) {
+        buttons.landlordView.addEventListener('click', function() {
+            if (views.tenantManagement) views.tenantManagement.style.display = 'none';
+            if (views.landlordManagement) views.landlordManagement.style.display = 'block';
+            showNotification('Switched to Landlord Management View', 'success');
+        });
+    }
+
+    // OTP Input Management
+    const otpInputs = document.querySelectorAll('.otp-input');
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+    });
+
+    // OTP Verification
+    if (buttons.verifyOtp) {
+        buttons.verifyOtp.addEventListener('click', function() {
+            const otpValue = Array.from(otpInputs).map(input => input.value).join('');
+            if (otpValue.length === 6) {
+                showNotification('SMS verification successful!', 'success');
+                closeAllModals();
+                // Clear OTP inputs
+                otpInputs.forEach(input => input.value = '');
+            } else {
+                showNotification('Please enter the complete 6-digit code', 'error');
+            }
+        });
+    }
+
+    // Landlord Creation
+    if (buttons.saveLandlord) {
+        buttons.saveLandlord.addEventListener('click', function() {
+            const form = document.querySelector('#landlord-modal form') || 
+                        document.querySelector('#landlord-modal');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
+            
+            let isValid = true;
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = '#ef4444';
+                } else {
+                    input.style.borderColor = '#e2e8f0';
+                }
+            });
+
+            if (isValid) {
+                showNotification('New landlord account created successfully!', 'success');
+                closeAllModals();
+                // Clear form
+                inputs.forEach(input => input.value = '');
+            } else {
+                showNotification('Please fill in all required fields', 'error');
+            }
+        });
+    }
+
+    // Account Action Handlers
+    function handleAccountAction(action, accountName, accountType) {
+        let message = '';
+        let type = 'success';
+
+        switch(action) {
+            case 'edit':
+                message = `Editing ${accountName} account details`;
+                type = 'info';
+                break;
+            case 'suspend':
+                message = `${accountName} account has been suspended`;
+                type = 'warning';
+                break;
+            case 'reactivate':
+                message = `${accountName} account has been reactivated`;
+                type = 'success';
+                break;
+            case 'delete':
+                if (confirm(`Are you sure you want to delete ${accountName}'s account? This action cannot be undone.`)) {
+                    message = `${accountName} account has been deleted`;
+                    type = 'error';
+                } else {
+                    return;
+                }
+                break;
+        }
+
+        showNotification(message, type);
+    }
+
+    // Add event listeners to all action buttons
+    document.addEventListener('click', function(e) {
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const title = button.getAttribute('title');
+        const accountCard = button.closest('.property-card');
+        
+        if (accountCard && title) {
+            const accountName = accountCard.querySelector('h3').textContent;
+            const accountType = accountCard.closest('#landlord-management') ? 'landlord' : 'tenant';
+            
+            switch(title.toLowerCase()) {
+                case 'edit':
+                    handleAccountAction('edit', accountName, accountType);
+                    break;
+                case 'suspend':
+                    handleAccountAction('suspend', accountName, accountType);
+                    break;
+                case 'reactivate':
+                    handleAccountAction('reactivate', accountName, accountType);
+                    break;
+                case 'delete':
+                    handleAccountAction('delete', accountName, accountType);
+                    break;
+            }
+        }
+    });
+
+    // Notification System
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        const icon = getNotificationIcon(type);
+        notification.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    ${icon}
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800">${message}</p>
+                </div>
+                <button class="flex-shrink-0 text-slate-400 hover:text-slate-600" onclick="this.parentElement.parentElement.remove()">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        container.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+
+    function getNotificationIcon(type) {
+        const icons = {
+            success: `<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>`,
+            error: `<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>`,
+            warning: `<svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>`,
+            info: `<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>`
+        };
+        return icons[type] || icons.info;
+    }
+
+    // Form Validation
+    function validateForm(formElement) {
+        const inputs = formElement.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('border-red-500');
+                input.classList.remove('border-slate-300');
+            } else {
+                input.classList.remove('border-red-500');
+                input.classList.add('border-slate-300');
+            }
+        });
+
+        return isValid;
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Escape key closes all modals
+        if (e.key === 'Escape') {
+            closeAllModals();
+        }
+        
+        // Ctrl/Cmd + K opens search (if implemented)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            // Implement search functionality here
+            showNotification('Search functionality coming soon!', 'info');
+        }
+    });
+
+    // Initialize tooltips and other UI enhancements
+    function initializeUI() {
+        // Add loading states to buttons
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (!this.classList.contains('loading')) {
+                    this.classList.add('loading');
+                    setTimeout(() => {
+                        this.classList.remove('loading');
+                    }, 1000);
+                }
+            });
+        });
+
+        // Initialize fade-in animations for cards
+        const cards = document.querySelectorAll('.property-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    }
+
+    // Calendar functionality
+    function initializeCalendar() {
+        const calendarDays = document.querySelectorAll('.calendar-day');
+        calendarDays.forEach(day => {
+            day.addEventListener('click', function() {
+                if (this.classList.contains('has-event')) {
+                    showNotification(`Event details for ${this.textContent}`, 'info');
+                }
+            });
+        });
+    }
+
+    // Initialize everything
+    initializeUI();
+    initializeCalendar();
+
+    // Show welcome message
+    setTimeout(() => {
+        showNotification('Welcome to Unitly Admin Dashboard!', 'success');
+    }, 1000);
+});
+
+// Utility Functions
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
+}
+
+function formatDate(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }).format(new Date(date));
+}
+
+function generateRandomId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+// Export functions for external use
+window.AdminDashboard = {
+    showNotification: function(message, type) {
+        // This allows external scripts to show notifications
+        const event = new CustomEvent('showNotification', {
+            detail: { message, type }
+        });
+        document.dispatchEvent(event);
+    }
+};
+
+window.TenantDashboard = {
+    showNotification: function(message, type) {
+        const event = new CustomEvent('showNotification', {
+            detail: { message, type }
+        });
+        document.dispatchEvent(event);
+    },
+    
+    uploadReceipt: function(receiptData) {
+        // This would handle programmatic receipt uploads
+        console.log('Receipt uploaded:', receiptData);
+    },
+    
+    submitMaintenanceRequest: function(requestData) {
+        // This would handle programmatic maintenance requests
+        console.log('Maintenance request submitted:', requestData);
+    }
+};
