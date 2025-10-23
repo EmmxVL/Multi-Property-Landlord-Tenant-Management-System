@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_unit"])) {
 
     if ($unitManager->updateUnit($unitId, $unitName, $rent)) {
         $_SESSION["success"] = "Unit updated successfully!";
-        header("Location: manageUnits.php?property_id=$propertyId");
+        header("Location: manageUnit.php?property_id=$propertyId");
         exit;
     } else {
         $_SESSION["error"] = "Failed to update unit.";
