@@ -42,7 +42,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                     <span class="text-white font-bold text-lg">U</span>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-800">Unitly</h1>
+                    <h1 class="text-2xl font-bold text-slate-800">Unitly Landlord</h1>
                     <p class="text-xs text-slate-500">Welcome, <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?>!</p>
                 </div>
             </div>
