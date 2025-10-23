@@ -1,111 +1,108 @@
 <?php
 session_start();
+// --- Add error display for debugging ---
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once "dbConnect.php";
 
-// ✅ Restrict access to Admins only
-if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Admin") {
-    header("Location: login.php");
+$database = new Database();
+$db = $database->getConnection();
+
+/**
+ * Helper function to send error response via Session + Redirect.
+ */
+function sendAdminError($message, $location = '../admin_dashboard.php') {
+    $_SESSION['admin_error'] = $message;
+    header("Location: $location");
     exit;
 }
 
-$success = "";
-$error = "";
+// --- 1. Check Role and Request Method ---
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Admin") {
+    header("Location: ../login_page.php");
+    exit;
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = trim($_POST["full_name"]);
-    $phone = trim($_POST["phone"]);
-    $password = trim($_POST["password"]);
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    header("Location: ../admin_dashboard.php");
+    exit;
+}
 
-    if (empty($fullName) || empty($phone) || empty($password)) {
-        $error = "All fields are required.";
-    } else {
-        try {
-            $database = new Database();
-            $db = $database->getConnection();
+// --- 2. Get and Validate Inputs ---
+$fullName = trim($_POST["full_name"] ?? "");
+$phone = trim($_POST["phone"] ?? "");
+$password = trim($_POST["password"] ?? "");
 
-            // Check if phone number already exists
-            $checkQuery = "SELECT * FROM user_tbl WHERE phone_no = :phone";
-            $checkStmt = $db->prepare($checkQuery);
-            $checkStmt->bindParam(":phone", $phone);
-            $checkStmt->execute();
+if (empty($fullName) || empty($phone) || empty($password)) {
+    sendAdminError("All fields (Full Name, Phone, Password) are required.");
+}
 
-            if ($checkStmt->rowCount() > 0) {
-                $error = "A user with that phone number already exists.";
-            } else {
-                // ✅ Hash the password
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+// --- 3. Normalize Phone Number ---
+// Assumes database stores '09...' format. Adjust if needed.
+$normalizedPhone = $phone;
+$normalizedPhone = preg_replace('/[^+0-9]/', '', $normalizedPhone);
+if (strpos($normalizedPhone, '+63') === 0) {
+    $normalizedPhone = '0' . substr($normalizedPhone, 3);
+}
+if (strlen($normalizedPhone) === 10 && strpos($normalizedPhone, '9') === 0) {
+    $normalizedPhone = '0' . $normalizedPhone;
+}
+// --- End Normalization ---
 
-                // Insert into user_tbl
-                $insertUser = "INSERT INTO user_tbl (full_name, password, phone_no)
-                               VALUES (:full_name, :password, :phone)";
-                $stmt = $db->prepare($insertUser);
-                $stmt->bindParam(":full_name", $fullName);
-                $stmt->bindParam(":password", $hashedPassword);
-                $stmt->bindParam(":phone", $phone);
-                $stmt->execute();
+// --- 4. Main Logic ---
+try {
+    // Check existing phone using normalized number
+    $checkQuery = "SELECT user_id FROM user_tbl WHERE phone_no = :phone LIMIT 1"; // Use user_id if id is ambiguous
+    $checkStmt = $db->prepare($checkQuery);
+    $checkStmt->execute([':phone' => $normalizedPhone]);
 
-                // Get the last inserted user_id
-                $userId = $db->lastInsertId();
-
-                // Assign Landlord role (role_id = 1)
-                $insertRole = "INSERT INTO user_role_tbl (role_id, user_id, role_type)
-                               VALUES (1, :user_id, '1')";
-                $stmt2 = $db->prepare($insertRole);
-                $stmt2->bindParam(":user_id", $userId);
-                $stmt2->execute();
-
-                $success = "✅ Landlord account created successfully!";
-            }
-        } catch (PDOException $e) {
-            $error = "Database error: " . $e->getMessage();
-        }
+    if ($checkStmt->rowCount() > 0) {
+        sendAdminError("A user with that phone number already exists.");
     }
+
+    // Hash the password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Try to split full name into first/last
+    $names = preg_split('/\s+/', $fullName, 2);
+    $firstName = $names[0] ?? '';
+    $lastName = $names[1] ?? '';
+
+    // Insert user with normalized phone
+    $stmt = $db->prepare("INSERT INTO user_tbl (first_name, last_name, password, phone_no, full_name)
+                          VALUES (:first_name, :last_name, :password, :phone, :full_name)");
+    $stmt->execute([
+        ':first_name' => $firstName,
+        ':last_name'  => $lastName,
+        ':password'   => $hashedPassword,
+        ':phone'      => $normalizedPhone, // Store normalized phone
+        ':full_name'  => $fullName
+    ]);
+
+    $userId = $db->lastInsertId();
+
+    // Assign Landlord role
+    // IMPORTANT: Check your role_tbl. What is the actual ID for 'Landlord'? Using 2 as placeholder.
+    $landlordRoleId = 2;
+    // IMPORTANT: Does user_role_tbl have a role_type column? If not, remove it from query.
+    $assignRole = "INSERT INTO user_role_tbl (role_id, user_id) VALUES (:role_id, :user_id)";
+    // If you need role_type: INSERT INTO user_role_tbl (role_id, user_id, role_type) VALUES (:role_id, :user_id, '1')
+    $rstmt = $db->prepare($assignRole);
+    $rstmt->execute([
+        ':role_id' => $landlordRoleId,
+        ':user_id' => $userId
+        // ':role_type' => '1' // Only if needed
+        ]);
+
+    $_SESSION['admin_success'] = "Landlord account created successfully.";
+    header("Location: ../admin_dashboard.php");
+    exit;
+
+} catch (PDOException $e) {
+    // Show detailed error for debugging
+    sendAdminError("Database error: " . $e->getMessage());
+} catch (Exception $e) {
+    sendAdminError("Server error: " . $e->getMessage());
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Create Landlord</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h3 class="mb-4 text-center">Admin Dashboard</h3>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5>Create Landlord Account</h5>
-
-            <?php if ($success): ?>
-                <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-            <?php elseif ($error): ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
-
-            <form method="POST" action="">
-                <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="full_name" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="text" name="phone" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Create Landlord</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="text-center mt-3">
-        <a href="logout.php" class="btn btn-danger">Logout</a>
-    </div>
-</div>
-</body>
-</html>

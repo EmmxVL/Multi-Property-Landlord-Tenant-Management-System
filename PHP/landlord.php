@@ -1,111 +1,110 @@
 <?php
 session_start();
+// --- Add error display for debugging ---
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once "dbConnect.php";
 
-// ✅ Restrict access to Landlords only
-if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: login.php");
+$database = new Database();
+$db = $database->getConnection();
+
+/**
+ * Helper function to send error response via Session + Redirect.
+ */
+function sendLandlordError($message, $location = '../landlord_dashboard.php') {
+    $_SESSION['landlord_error'] = $message;
+    header("Location: $location");
     exit;
 }
 
-$success = "";
-$error = "";
+// --- 1. Check Role and Request Method ---
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
+    header("Location: ../login_page.php"); // Use login_page.php
+    exit;
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fullName = trim($_POST["full_name"]);
-    $phone = trim($_POST["phone"]);
-    $password = trim($_POST["password"]);
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    // Disallow direct GET access
+    header("Location: ../landlord_dashboard.php");
+    exit;
+}
 
-    if (empty($fullName) || empty($phone) || empty($password)) {
-        $error = "All fields are required.";
-    } else {
-        try {
-            $database = new Database();
-            $db = $database->getConnection();
+// --- 2. Get and Validate Inputs ---
+$fullName = trim($_POST["full_name"] ?? '');
+$phone = trim($_POST["phone"] ?? '');
+$password = trim($_POST["password"] ?? '');
 
-            // Check if phone number already exists
-            $checkQuery = "SELECT * FROM user_tbl WHERE phone_no = :phone";
-            $checkStmt = $db->prepare($checkQuery);
-            $checkStmt->bindParam(":phone", $phone);
-            $checkStmt->execute();
+if (empty($fullName) || empty($phone) || empty($password)) {
+    sendLandlordError("All fields (Full Name, Phone, Password) are required.");
+}
 
-            if ($checkStmt->rowCount() > 0) {
-                $error = "A user with that phone number already exists.";
-            } else {
-                // ✅ Hash the password before saving
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+// --- 3. Normalize Phone Number (Handles '09...' vs '+63...') ---
+// Assumes database stores '09...' format. Change if needed.
+$normalizedPhone = $phone;
+$normalizedPhone = preg_replace('/[^+0-9]/', '', $normalizedPhone);
+if (strpos($normalizedPhone, '+63') === 0) {
+    $normalizedPhone = '0' . substr($normalizedPhone, 3);
+}
+if (strlen($normalizedPhone) === 10 && strpos($normalizedPhone, '9') === 0) {
+    $normalizedPhone = '0' . $normalizedPhone;
+}
+// --- End Normalization ---
 
-                // Insert into user_tbl
-                $insertUser = "INSERT INTO user_tbl (full_name, password, phone_no)
-                               VALUES (:full_name, :password, :phone)";
-                $stmt = $db->prepare($insertUser);
-                $stmt->bindParam(":full_name", $fullName);
-                $stmt->bindParam(":password", $hashedPassword);
-                $stmt->bindParam(":phone", $phone);
-                $stmt->execute();
+// --- 4. Main Logic ---
+try {
+    // Check if phone number already exists
+    $checkQuery = "SELECT user_id FROM user_tbl WHERE phone_no = :phone LIMIT 1";
+    $checkStmt = $db->prepare($checkQuery);
+    $checkStmt->execute([':phone' => $normalizedPhone]); // Use normalized phone
 
-                // Get the last inserted user_id
-                $userId = $db->lastInsertId();
-
-                // Assign Tenant role (role_id = 2)
-                $insertRole = "INSERT INTO user_role_tbl (role_id, user_id, role_type)
-                               VALUES (2, :user_id, '2')";
-                $stmt2 = $db->prepare($insertRole);
-                $stmt2->bindParam(":user_id", $userId);
-                $stmt2->execute();
-
-                $success = "✅ Tenant account created successfully!";
-            }
-        } catch (PDOException $e) {
-            $error = "Database error: " . $e->getMessage();
-        }
+    if ($checkStmt->rowCount() > 0) {
+        sendLandlordError("A user with that phone number already exists.");
     }
+
+    // Hash the password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert into user_tbl (assuming you might add first/last name later)
+    $names = preg_split('/\s+/', $fullName, 2);
+    $firstName = $names[0] ?? '';
+    $lastName = $names[1] ?? '';
+
+    $insertUser = "INSERT INTO user_tbl (full_name, first_name, last_name, password, phone_no)
+                   VALUES (:full_name, :first_name, :last_name, :password, :phone)";
+    $stmt = $db->prepare($insertUser);
+    $stmt->execute([
+        ':full_name' => $fullName,
+        ':first_name' => $firstName, // Add if your table has it
+        ':last_name' => $lastName,   // Add if your table has it
+        ':password' => $hashedPassword,
+        ':phone' => $normalizedPhone // Use normalized phone
+    ]);
+
+    // Get the last inserted user_id
+    $userId = $db->lastInsertId();
+
+    // Assign Tenant role (Verify role_id=3 is Tenant in your role_tbl)
+    // Also verify if role_type column exists and is needed.
+    $tenantRoleId = 3; // <-- IMPORTANT: Double-check this ID in your role_tbl
+    $insertRole = "INSERT INTO user_role_tbl (role_id, user_id) VALUES (:role_id, :user_id)";
+    // If you have role_type: INSERT INTO user_role_tbl (role_id, user_id, role_type) VALUES (:role_id, :user_id, '2')
+    $stmt2 = $db->prepare($insertRole);
+    $stmt2->execute([
+        ':role_id' => $tenantRoleId,
+        ':user_id' => $userId
+        // ':role_type' => '2' // Add this if your table requires it
+        ]);
+
+    // --- Send Success Feedback ---
+    $_SESSION['landlord_success'] = "Tenant account created successfully!";
+    header("Location: ../landlord_dashboard.php");
+    exit;
+
+} catch (PDOException $e) {
+    // Show detailed error for debugging, make generic in production
+    sendLandlordError("Database error: " . $e->getMessage());
+} catch (Exception $e) {
+    sendLandlordError("Server error: " . $e->getMessage());
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landlord Dashboard - Create Tenant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h3 class="mb-4 text-center">Landlord Dashboard</h3>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5>Create Tenant Account</h5>
-
-            <?php if ($success): ?>
-                <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-            <?php elseif ($error): ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
-
-            <form method="POST" action="">
-                <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="full_name" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="text" name="phone" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Create Tenant</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="text-center mt-3">
-        <a href="logout.php" class="btn btn-danger">Logout</a>
-    </div>
-</div>
-</body>
-</html>

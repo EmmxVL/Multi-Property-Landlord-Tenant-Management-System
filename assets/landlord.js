@@ -129,3 +129,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Welcome Message ---
     setTimeout(() => showNotification('Welcome to Unitly Landlord Dashboard!', 'success'), 1000);
 });
+
+const addTenantModal = document.getElementById('add-tenant-modal');
+const openAddTenantBtn = document.getElementById('open-add-tenant-modal-btn');
+const closeAddTenantBtns = addTenantModal.querySelectorAll('[data-modal-close="add-tenant-modal"]');
+
+if (openAddTenantBtn && addTenantModal) {
+    openAddTenantBtn.addEventListener('click', () => {
+        addTenantModal.style.display = 'flex'; // Or your modal show class/logic
+    });
+}
+
+closeAddTenantBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        addTenantModal.style.display = 'none'; // Or your modal hide class/logic
+    });
+});
