@@ -1,6 +1,20 @@
 <?php
 session_start();
 
+// Get full name from session (default to 'Guest' if missing)
+$full_name = $_SESSION['full_name'] ?? 'Guest';
+
+// Split name into parts (e.g. ["Alice", "Brown"])
+$name_parts = explode(' ', trim($full_name));
+
+// Generate initials (first letter of first and last name)
+$initials = '';
+if (count($name_parts) >= 2) {
+    $initials = strtoupper(substr($name_parts[0], 0, 1) . substr(end($name_parts), 0, 1));
+} else {
+    $initials = strtoupper(substr($name_parts[0], 0, 1));
+}
+
 // ✅ Redirect if not logged in as Tenant
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant") {
     header("Location: ../../login_page.php"); // Redirect to login page
@@ -37,18 +51,14 @@ if (!isset($_SESSION["user_id"])) {
                     <p class="text-xs text-slate-500">My Dashboard</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <button class="relative p-2 text-slate-600 hover:text-blue-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 1 0-15 0v5h5l-5 5-5-5h5V7a12 12 0 1 1 24 0v10z"/>
-                    </svg>
-                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></span>
-                </button>
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-700 text-sm">Alice Brown</span>
-                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        AB
-                    </div>
+           <div class="flex items-center space-x-2">
+    <span class="text-slate-700 text-sm font-medium">
+        <?php echo htmlspecialchars($full_name); ?>
+    </span>
+    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
+        <?php echo $initials; ?>
+    </div>
+</div>
                 </div>
             </div>
         </div>
