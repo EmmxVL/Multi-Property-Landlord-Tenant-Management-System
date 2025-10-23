@@ -77,26 +77,37 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-xl font-semibold text-slate-800 mb-4">My Properties</h3>
-                <div class="space-y-3">
-                 
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 1 Name - Address</div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 2 Name - Address</div>
-                </div>
-                 <button class="mt-4 w-full text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">Manage Properties</button>
-            </section>
+        <!-- My Properties Section -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-semibold text-slate-800 mb-4">My Properties</h3>
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 1 Name - Address</div>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 2 Name - Address</div>
+            </div>
+            <!-- Manage Properties Button -->
+            <a href="../manageProperties.php"
+            class="mt-4 block text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+            Manage Properties
+            </a>
+        </section>
 
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-xl font-semibold text-slate-800 mb-4">My Tenants</h3>
-                <div class="space-y-3">
-                    
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant A Name - Property 1</div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant B Name - Property 2</div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant C Name - Property 1</div>
-                </div>
-                 <button class="mt-4 w-full text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">Manage Tenants</button>
-            </section>
+        <!-- My Tenants Section -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-xl font-semibold text-slate-800 mb-4">My Tenants</h3>
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant A Name - Property 1</div>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant B Name - Property 2</div>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant C Name - Property 1</div>
+            </div>
+            <!-- Manage Tenants Button -->
+            <a href="manageTenants.php"
+            class="mt-4 block text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+            Manage Tenants
+            </a>
+        </section>
+
+
+
 
         </div>
         </main>
