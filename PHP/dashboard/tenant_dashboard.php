@@ -1,17 +1,18 @@
 <?php
 session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Tenant') {
-    header('Location: ../login.html');
+
+// ✅ Redirect if not logged in as Tenant
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant") {
+    header("Location: ../../login_page.php"); // Redirect to login page
     exit;
 }
-$path = __DIR__ . '/../tenant_dashboard.html';
-if (file_exists($path)) {
-    readfile($path);
-    exit;
-} else {
-    echo "Tenant dashboard file not found.";
+
+// ✅ Extra safety: ensure user_id exists
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../login_page.php");
     exit;
 }
+
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

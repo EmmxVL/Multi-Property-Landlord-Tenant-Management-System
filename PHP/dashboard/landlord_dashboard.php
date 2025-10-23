@@ -3,7 +3,12 @@ session_start();
 
 // Redirect if not logged in as Landlord
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: login_page.php"); // Redirect to login page
+    header("Location: ../../login_page.php"); // Redirect to login page
+    exit;
+}
+
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../login_page.php");
     exit;
 }
 
@@ -52,7 +57,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                              $initials = ($names[0][0] ?? '') . ($names[1][0] ?? ''); echo htmlspecialchars(strtoupper($initials) ?: 'U');
                          ?>
                      </div>
-                     <a href="PHP/logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
+                     <a href="../logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                      </a>
                 </div>
@@ -97,7 +102,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         </main>
     <div id="add-tenant-modal" class="modal">
         <div class="modal-content">
-            <form method="POST" action="PHP/landlord.php">
+            <form method="POST" action="../landlord.php">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
