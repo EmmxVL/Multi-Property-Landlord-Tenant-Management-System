@@ -22,8 +22,8 @@ try {
     $userId = $db->lastInsertId();
 
     // Assign Admin role (role_id = 3)
-    $roleQuery = "INSERT INTO user_role_tbl (role_id, user_id, role_type)
-                  VALUES (3, :user_id, '3')";
+    $roleQuery = "INSERT INTO user_role_tbl (role_id, user_id)
+                  VALUES (3, :user_id)";
     $roleStmt = $db->prepare($roleQuery);
     $roleStmt->bindParam(":user_id", $userId);
     $roleStmt->execute();

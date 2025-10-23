@@ -1,19 +1,47 @@
 <?php
 session_start();
 
-// ✅ Redirect if not logged in as Tenant
+////////////////////////////////////////////////////////////////////////
+// 1. AUTH GUARD (MUST RUN FIRST)
+////////////////////////////////////////////////////////////////////////
+
+// Check if user is logged in as Tenant
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant") {
-    header("Location: ../../login_page.php"); // Redirect to login page
+    header("Location: ../../login_page.php");
     exit;
 }
 
-// ✅ Extra safety: ensure user_id exists
+// Extra safety: make sure user_id exists
 if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login_page.php");
+    header("Location: ../../login_page.php");
     exit;
 }
 
-?><!DOCTYPE html>
+$tenant_user_id = $_SESSION["user_id"];
+$full_name = $_SESSION["full_name"] ?? 'Guest';
+
+// Generate initials for profile circle
+$name_parts = explode(' ', trim($full_name));
+$initials = count($name_parts) >= 2 
+    ? strtoupper($name_parts[0][0] . end($name_parts)[0]) 
+    : strtoupper($name_parts[0][0]);
+
+////////////////////////////////////////////////////////////////////////
+// 2. DATABASE LOGIC
+////////////////////////////////////////////////////////////////////////
+
+require_once '../dbConnect.php';
+$database = new Database();
+$conn = $database->getConnection(); // PDO instance
+
+// Fetch all active leases for this tenant
+$sql = "SELECT * FROM v_active_lease_details WHERE tenant_user_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->execute([$tenant_user_id]);
+$leases = $stmt->fetchAll(PDO::FETCH_ASSOC); // fetchAll for multiple rows
+?>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,10 +49,11 @@ if (!isset($_SESSION["user_id"])) {
     <title>Unitly Tenant - My Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="assets/styles.css">
-      <script src="assets/script.js" defer></script>
-    <script src="assets/tenant.js"></script>
-</head> 
+    <script src="assets/script.js" defer></script>
+    <script src="assets/tenant.js" defer></script>
+</head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans">
+
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -34,59 +63,99 @@ if (!isset($_SESSION["user_id"])) {
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800">Unitly Tenant</h1>
-                    <p class="text-xs text-slate-500">My Dashboard</p>
+                    <p class="text-xs text-slate-500">Welcome, <?= htmlspecialchars($full_name) ?>!</p>
                 </div>
             </div>
+
             <div class="flex items-center space-x-4">
-                <button class="relative p-2 text-slate-600 hover:text-blue-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 1 0-15 0v5h5l-5 5-5-5h5V7a12 12 0 1 1 24 0v10z"/>
-                    </svg>
-                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></span>
-                </button>
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-700 text-sm">Alice Brown</span>
-                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        AB
-                    </div>
+                <span class="text-slate-700 text-sm hidden sm:inline"><?= htmlspecialchars($full_name) ?></span>
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                    <?= htmlspecialchars($initials) ?>
                 </div>
+                <a href="../logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </a>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-600 text-sm font-medium">Monthly Rent</p>
-                        <p class="text-3xl font-bold text-slate-800 mt-1">$1,200</p>
-                        <p class="text-xs text-green-600 mt-1">Due: Dec 1st</p>
+<div class="flex flex-wrap gap-6 mb-8 fade-in">
+  <!-- Monthly Rent -->
+  <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card flex-1 min-w-[280px]">
+    <div class="flex items-center justify-between">
+            <?php if (!empty($leases)): ?>
+                <?php foreach ($leases as $row): ?>
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-600 text-sm font-medium"><?= htmlspecialchars($row['unit_name']) ?></p>
+                                <p class="text-3xl font-bold text-slate-800 mt-1">
+                                    ₱<?= number_format($row['rent']); ?>
+                                </p>
+                                <p class="text-xs text-green-600 mt-1">
+                                    Lease: <?= date("M j, Y", strtotime($row['lease_start_date'])); ?> 
+                                    → <?= date("M j, Y", strtotime($row['lease_end_date'])); ?>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="text-slate-500 text-center col-span-full">No active leases found.</p>
+            <?php endif; ?>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-600 text-sm font-medium">Payment Status</p>
-                        <p class="text-xl font-bold text-green-600 mt-1">Paid</p>
-                        <p class="text-xs text-slate-600 mt-1">Last: Nov 28, 2024</p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
+ <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card flex-1 min-w-[280px]">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-slate-600 text-sm font-medium">Payment Status</p>
+
+            <?php
+            // Determine payment status text & color dynamically
+            $payment_status = $lease['payment_status'] ?? 'Unpaid';
+            $status_color = ($payment_status === 'Paid') ? 'text-green-600' : 'text-red-600';
+
+            // Format payment date (if available)
+            $last_payment_date = !empty($lease['payment_date'])
+                ? date("M j, Y", strtotime($lease['payment_date']))
+                : 'No payment recorded';
+            ?>
+
+            <p class="text-xl font-bold <?= $status_color ?> mt-1">
+                <?= htmlspecialchars($payment_status) ?>
+            </p>
+            <p class="text-xs text-slate-600 mt-1">
+                Last: <?= htmlspecialchars($last_payment_date) ?>
+            </p>
+        </div>
+
+        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <?php if ($payment_status === 'Paid'): ?>
+                <!-- Check Icon (Paid) -->
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            <?php else: ?>
+                <!-- Warning Icon (Unpaid) -->
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
                 <div class="flex items-center justify-between">
