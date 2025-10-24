@@ -1,44 +1,25 @@
 <?php
+require_once "../../PHP/dbConnect.php";
+require_once "../../PHP/tenant.php";
 session_start();
 
-////////////////////////////////////////////////////////////////////////
-// 1. AUTH GUARD (MUST RUN FIRST)
-////////////////////////////////////////////////////////////////////////
-
-// Check if user is logged in as Tenant
+// Redirect if not logged in as tenant
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant") {
-    header("Location: ../../login_page.php");
+    header("Location: ../../login_page.php"); // Redirect to login page
     exit;
 }
 
-// Extra safety: make sure user_id exists
 if (!isset($_SESSION["user_id"])) {
     header("Location: ../../login_page.php");
     exit;
 }
 
-$tenant_user_id = $_SESSION["user_id"];
-$full_name = $_SESSION["full_name"] ?? 'Guest';
+// Get session messages from the backend
+$landlordSuccess = $_SESSION['tenant_success'] ?? null;
+$landlordError = $_SESSION['tenant_error'] ?? null;
 
-// Generate initials for profile circle
-$name_parts = explode(' ', trim($full_name));
-$initials = count($name_parts) >= 2 
-    ? strtoupper($name_parts[0][0] . end($name_parts)[0]) 
-    : strtoupper($name_parts[0][0]);
-
-////////////////////////////////////////////////////////////////////////
-// 2. DATABASE LOGIC
-////////////////////////////////////////////////////////////////////////
-
-require_once '../dbConnect.php';
-$database = new Database();
-$conn = $database->getConnection(); // PDO instance
-
-// Fetch all active leases for this tenant
-$sql = "SELECT * FROM v_active_lease_details WHERE tenant_user_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->execute([$tenant_user_id]);
-$leases = $stmt->fetchAll(PDO::FETCH_ASSOC); // fetchAll for multiple rows
+// Clear them so they don't show again on refresh
+unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
 ?>
 
 <!DOCTYPE html>

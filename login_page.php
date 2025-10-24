@@ -40,7 +40,7 @@ unset($_SESSION['login_error']);
             <div class="form-group">
                 <label for="phone">Phone</label>
                 <!-- name changed to "phone" to match PHP -->
-                <input type="tel" class="form-control" id="phone" name="phone" maxlength="15" placeholder="Phone number" required>
+                <input type="tel" class="form-control" id="phone" name="phone" maxlength="11" placeholder="Phone number" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>

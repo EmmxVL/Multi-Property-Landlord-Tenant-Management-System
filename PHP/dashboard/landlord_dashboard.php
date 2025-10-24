@@ -27,9 +27,9 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <title>Unitly - Landlord Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
-    <link rel="stylesheet" href="assets/styles.css">
-    <script src="assets/script.js" defer></script>
-    <script src="assets/landlord.js" defer></script>
+    <link rel="stylesheet" href="../../assets/styles.css">
+    <script src="../../assets/script.js" defer></script>
+    <script src="../../assets/landlord.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
 
@@ -77,12 +77,20 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-        <!-- My Properties Section -->
+                <!-- My Properties Section -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 class="text-xl font-semibold text-slate-800 mb-4">My Properties</h3>
             <div class="space-y-3">
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 1 Name - Address</div>
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Property 2 Name - Address</div>
+                <?php if ($propertyResult->num_rows > 0): ?>
+                    <?php while ($property = $propertyResult->fetch_assoc()): ?>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <?= htmlspecialchars($property['property_name']) ?> - 
+                            <?= htmlspecialchars($property['property_address']) ?>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="text-slate-500 italic">No properties found.</p>
+                <?php endif; ?>
             </div>
             <!-- Manage Properties Button -->
             <a href="../manageProperties.php"
@@ -91,24 +99,27 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
             </a>
         </section>
 
-        <!-- My Tenants Section -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 class="text-xl font-semibold text-slate-800 mb-4">My Tenants</h3>
+                <!-- My Tenants Section -->
+          <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <h3 class="text-xl font-semibold text-slate-800 mb-4">My Tenants</h3>
             <div class="space-y-3">
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant A Name - Property 1</div>
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant B Name - Property 2</div>
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">Tenant C Name - Property 1</div>
+                <?php if ($result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <?= htmlspecialchars($row['tenant_name']) ?> - 
+                            <?= htmlspecialchars($row['property_name']) ?> (<?= htmlspecialchars($row['unit_name']) ?>)
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="text-slate-500 italic">No tenants found.</p>
+                <?php endif; ?>
             </div>
             <!-- Manage Tenants Button -->
-            <a href="manageTenants.php"
+            <a href="../manageTenants.php"
             class="mt-4 block text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
             Manage Tenants
             </a>
         </section>
-
-
-
-
         </div>
         </main>
     <div id="add-tenant-modal" class="modal">
@@ -132,7 +143,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
                     <div>
                         <label for="tenant-phone" class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
-                        <input type="tel" id="tenant-phone" name="phone" required class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="+639...">
+                        <input type="tel" id="tenant-phone" name="phone" maxlength="11" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="+639...">
                     </div>
 
                     <div>

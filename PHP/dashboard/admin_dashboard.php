@@ -18,6 +18,27 @@ $adminError = $_SESSION['admin_error'] ?? null;
 
 // Clear them so they don't show again on refresh
 unset($_SESSION['admin_success'], $_SESSION['admin_error']);
+
+// Database connection
+require_once "../../PHP/dbConnect.php";
+$database = new Database();
+$db = $database->getConnection();
+
+// Fetch landlords
+try {
+    $stmt = $db->prepare("
+        SELECT u.user_id, u.full_name, u.phone_no
+        FROM user_tbl u
+        JOIN user_role_tbl ur ON u.user_id = ur.user_id
+        WHERE ur.role_id = 1
+        ORDER BY u.full_name ASC
+    ");
+    $stmt->execute();
+    $landlords = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $landlords = [];
+    // Optionally log error or display message
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,17 +47,10 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Unitly Admin - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> {/* Load SweetAlert */}
-    <link rel="stylesheet" href="assets/styles.css"> {/* Ensure this has basic modal styles */}
-    <style>
-        /* Basic Modal Styles (can move to styles.css) */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background-color: #fefefe; margin: auto; padding: 2rem; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        input:focus { outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); border-color: #3B82F6; }
-    </style>
-    {/* Remove duplicate script.js/admin.js if not needed for basic modal */}
-    {/* <script src="assets/script.js" defer></script> */}
-    {/* <script src="assets/admin.js" defer></script> */}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles.css">
+   <script src="../../assets/script.js" defer></script> 
+    <script src="../../assets/admin.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
 
@@ -55,7 +69,6 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
             </div>
 
             <div class="flex items-center space-x-4">
-                {/* Optional Header Icons */}
                 <div class="flex items-center space-x-2">
                     <span class="text-slate-700 text-sm hidden sm:inline"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Admin User'); ?></span>
                     <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -84,21 +97,47 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
         <div class="grid grid-cols-1 gap-8">
             <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-xl font-semibold text-slate-800 mb-4">Landlord Management</h3>
-                <p class="text-slate-600">Manage landlord accounts from here.</p>
-                {/* Add a table or list of landlords later */}
+                <p class="text-slate-600 mb-4">Manage landlord accounts from here.</p>
+                <?php if (!empty($landlords)): ?>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto border-collapse border border-slate-300">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">ID</th>
+                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Full Name</th>
+                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Phone Number</th>
+                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($landlords as $landlord): ?>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['user_id']); ?></td>
+                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['full_name']); ?></td>
+                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['phone_no']); ?></td>
+                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800">
+                                            <button class="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
+                                            <button class="text-red-600 hover:text-red-800">Delete</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="text-slate-500">No landlords found.</p>
+                <?php endif; ?>
             </section>
 
              <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-xl font-semibold text-slate-800 mb-4">System Overview</h3>
                 <p class="text-slate-600">Display key system statistics here.</p>
-                 {/* Add stats cards or charts later */}
             </section>
         </div>
 
     </main>
     <div id="add-landlord-modal" class="modal">
         <div class="modal-content">
-            {/* Form posts data to the admin backend script */}
             <form method="POST" action="../admin.php">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -116,7 +155,7 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
 
                     <div>
                         <label for="landlord-phone" class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
-                        <input type="tel" id="landlord-phone" name="phone" required class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="+639...">
+                        <input type="tel" id="landlord-phone" name="phone" maxlength="11" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="+639...">
                     </div>
 
                     <div>
@@ -127,7 +166,6 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
 
                 <div class="flex space-x-3">
                     <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">Create Landlord Account</button>
-                    {/* This button needs JS to close the modal */}
                     <button type="button" id="close-add-landlord-modal-btn" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg transition-colors">Cancel</button>
                 </div>
             </form>
@@ -159,7 +197,6 @@ unset($_SESSION['admin_success'], $_SESSION['admin_error']);
                 <div>
                     <h4 class="text-xl font-semibold mb-6 text-blue-200">Stay Connected</h4>
                     <div class="flex space-x-4 mb-6">
-                         {/* Add actual SVG paths or use icon library */}
                         <a href="#" class="social-icon"><svg class="w-4 h-4 text-white hover:text-blue-300" viewBox="0 0 24 24" fill="currentColor"><path d="M...Z"/></svg></a>
                         <a href="#" class="social-icon"><svg class="w-4 h-4 text-white hover:text-blue-300" viewBox="0 0 24 24" fill="currentColor"><path d="M...Z"/></svg></a>
                     </div>

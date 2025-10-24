@@ -53,7 +53,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_unit"])) {
     <title>Update Unit</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">U</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Unitly Landlord</h1>
+                    <p class="text-xs text-slate-500">
+                        Welcome, <?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?>!
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-700 text-sm hidden sm:inline">
+                        <?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?>
+                    </span>
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        <?php
+                            $fullName = $_SESSION['full_name'] ?? 'LU';
+                            $names = explode(' ', $fullName);
+                            $initials = ($names[0][0] ?? '') . ($names[1][0] ?? '');
+                            echo htmlspecialchars(strtoupper($initials) ?: 'U');
+                        ?>
+                    </div>
+                    <a href="../logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="flex-grow flex justify-center items-center py-12">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <h1 class="text-2xl font-bold text-slate-800 mb-6 text-center">✏️ Update Unit</h1>
 
@@ -81,5 +122,61 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_unit"])) {
             </div>
         </form>
     </div>
+        </main>
+    <!-- FOOTER -->
+    <footer class="bg-blue-900 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-6 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-6 text-blue-100">Unitly</h3>
+                    <p class="text-blue-100 text-sm leading-relaxed">
+                        Simplifying property management by connecting landlords and tenants seamlessly.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold mb-4 text-blue-200">Contact Us</h4>
+                    <p class="text-blue-100 text-sm">004, Pilahan East, Sabang, Lipa City</p>
+                    <p class="text-blue-100 text-sm">+63 (0906) 581-6503</p>
+                    <p class="text-blue-100 text-sm">Unitlyph@gmail.com</p>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold mb-4 text-blue-200">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="footer-link">About Us</a></li>
+                        <li><a href="#" class="footer-link">Our Services</a></li>
+                        <li><a href="#" class="footer-link">Developers</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold mb-4 text-blue-200">Stay Connected</h4>
+                    <form id="newsletter-form" class="space-y-3">
+                        <input type="email" placeholder="Enter your email"
+                               class="newsletter-input w-full p-2 rounded bg-blue-800 border border-blue-700 focus:outline-none focus:border-blue-500 text-sm"
+                               required>
+                        <button type="submit"
+                                class="newsletter-btn w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-sm transition-colors">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-blue-700">
+            <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+                <div class="text-blue-200 text-sm mb-4 md:mb-0">
+                    © <?= date("Y"); ?> Unitly. All rights reserved.
+                </div>
+                <div class="flex space-x-6 text-sm">
+                    <a href="#" class="footer-bottom-link hover:text-white">Privacy Policy</a>
+                    <a href="#" class="footer-bottom-link hover:text-white">Terms of Service</a>
+                    <a href="#" class="footer-bottom-link hover:text-white">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
