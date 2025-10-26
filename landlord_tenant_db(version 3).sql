@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 09, 2025 at 06:06 PM
+-- Generation Time: Oct 26, 2025 at 12:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -239,7 +239,7 @@ CREATE TABLE `lease_tbl` (
   `lease_id` int(11) NOT NULL,
   `lease_start_date` date NOT NULL,
   `lease_end_date` date NOT NULL,
-  `balance` int(11) DEFAULT 0,
+  `balance` decimal(12,2) NOT NULL,
   `unit_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `lease_status` enum('Pending','Active','Terminated') DEFAULT 'Pending'
@@ -250,10 +250,12 @@ CREATE TABLE `lease_tbl` (
 --
 
 INSERT INTO `lease_tbl` (`lease_id`, `lease_start_date`, `lease_end_date`, `balance`, `unit_id`, `user_id`, `lease_status`) VALUES
-(1, '2025-01-01', '2025-12-31', 0, 1, 2, 'Active'),
-(2, '2025-02-01', '2026-01-31', 2000, 2, 3, 'Active'),
-(3, '2025-03-01', '2026-02-28', 5000, 3, 4, 'Pending'),
-(4, '2025-04-01', '2026-03-31', 0, 4, 2, 'Active');
+(5, '2026-10-27', '2027-10-27', 0.00, 7, 21, 'Terminated'),
+(6, '2026-10-27', '2026-10-27', 0.00, 7, 21, 'Terminated'),
+(7, '2026-10-27', '2027-10-26', 0.00, 7, 21, 'Terminated'),
+(8, '2026-10-27', '2027-10-27', 1000000.00, 7, 21, 'Terminated'),
+(9, '2025-10-26', '2026-10-26', 0.00, 7, 21, 'Active'),
+(10, '2026-10-26', '2027-10-26', 254000.00, 7, 26, 'Active');
 
 -- --------------------------------------------------------
 
@@ -271,16 +273,6 @@ CREATE TABLE `maintenance_tbl` (
   `maintenance_status` enum('Ongoing','Completed','Rejected') DEFAULT 'Ongoing'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `maintenance_tbl`
---
-
-INSERT INTO `maintenance_tbl` (`request_id`, `unit_id`, `user_id`, `description`, `maintenance_start_date`, `maintenance_end_date`, `maintenance_status`) VALUES
-(1, 1, 2, 'Leaking faucet in bathroom', '2025-03-01', '2025-03-02', 'Completed'),
-(2, 2, 3, 'Broken window lock', '2025-04-10', NULL, 'Ongoing'),
-(3, 3, 4, 'Air conditioner not working', '2025-05-05', NULL, 'Ongoing'),
-(4, 4, 2, 'Clogged kitchen drain', '2025-06-01', '2025-06-02', 'Completed');
-
 -- --------------------------------------------------------
 
 --
@@ -295,16 +287,6 @@ CREATE TABLE `message_tbl` (
   `date_sent` date DEFAULT NULL,
   `message_status` enum('Pending','Completed','Cancelled') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `message_tbl`
---
-
-INSERT INTO `message_tbl` (`message_id`, `unit_id`, `user_id`, `message`, `date_sent`, `message_status`) VALUES
-(1, 1, 2, 'Requesting maintenance schedule', '2025-03-01', 'Completed'),
-(2, 2, 3, 'Please confirm rent payment for February', '2025-02-12', 'Pending'),
-(3, 3, 4, 'When will technician arrive?', '2025-05-06', 'Pending'),
-(4, 4, 2, 'Thanks for quick repair!', '2025-06-03', 'Completed');
 
 -- --------------------------------------------------------
 
@@ -321,15 +303,6 @@ CREATE TABLE `otp_tbl` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `otp_tbl`
---
-
-INSERT INTO `otp_tbl` (`otp_id`, `user_id`, `otp_code`, `expiration_time`, `status`, `created_at`) VALUES
-(1, 1, '12081', '2025-10-09 22:34:26', 'Active', '2025-10-09 14:29:26'),
-(2, 2, '37467', '2025-10-09 22:35:17', 'Active', '2025-10-09 14:30:17'),
-(3, 1, '80624', '2025-10-09 22:38:32', 'Active', '2025-10-09 14:33:32');
-
 -- --------------------------------------------------------
 
 --
@@ -341,6 +314,7 @@ CREATE TABLE `payment_tbl` (
   `lease_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `unit_id` int(11) NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
   `payment_date` date NOT NULL,
   `receipt_upload` varchar(255) DEFAULT NULL,
   `payment_status` enum('Confirmed','Ongoing','Late') DEFAULT 'Ongoing'
@@ -350,12 +324,19 @@ CREATE TABLE `payment_tbl` (
 -- Dumping data for table `payment_tbl`
 --
 
-INSERT INTO `payment_tbl` (`payment_id`, `lease_id`, `user_id`, `unit_id`, `payment_date`, `receipt_upload`, `payment_status`) VALUES
-(1, 1, 2, 1, '2025-01-05', 'receipt1.jpg', 'Confirmed'),
-(2, 2, 3, 2, '2025-02-10', 'receipt2.jpg', 'Ongoing'),
-(3, 3, 4, 3, '2025-03-15', 'receipt3.jpg', 'Late'),
-(4, 4, 2, 4, '2025-04-08', 'receipt4.jpg', 'Confirmed'),
-(5, 1, 2, 1, '2025-02-05', 'receipt5.jpg', 'Confirmed');
+INSERT INTO `payment_tbl` (`payment_id`, `lease_id`, `user_id`, `unit_id`, `amount`, `payment_date`, `receipt_upload`, `payment_status`) VALUES
+(15, 5, 21, 7, 7.00, '2025-10-26', '2000', ''),
+(16, 5, 21, 7, 7.00, '2025-10-26', '2000', ''),
+(17, 5, 21, 7, 2000.00, '2025-10-26', '1761473213_money.jpeg', 'Ongoing'),
+(18, 5, 21, 7, 2000.00, '2025-10-26', '1761473225_money.jpeg', 'Ongoing'),
+(19, 6, 21, 7, 5000.00, '2025-10-26', '1761474608_money.jpeg', 'Ongoing'),
+(20, 6, 21, 7, 5000.00, '2025-10-26', '1761475376_money.jpeg', 'Confirmed'),
+(21, 6, 21, 7, 50000.00, '2025-10-26', '1761479131_money.jpeg', 'Ongoing'),
+(22, 7, 21, 7, 200000.00, '2025-10-26', '1761479525_money.jpeg', 'Ongoing'),
+(23, 9, 21, 7, 10000.00, '2025-10-26', '1761479614_money.jpeg', 'Ongoing'),
+(24, 9, 21, 7, 91000.00, '2025-10-26', '1761479639_money.jpeg', 'Ongoing'),
+(25, 10, 26, 7, 123000.00, '2025-10-26', '1761479747_money.jpeg', 'Ongoing'),
+(26, 10, 26, 7, 123000.00, '2025-10-26', '1761479755_money.jpeg', 'Ongoing');
 
 -- --------------------------------------------------------
 
@@ -375,9 +356,11 @@ CREATE TABLE `property_tbl` (
 --
 
 INSERT INTO `property_tbl` (`property_id`, `user_id`, `location`, `property_name`) VALUES
-(1, 1, 'Lipa City, Batangas', 'Sunset Apartments'),
-(2, 1, 'Tanauan City, Batangas', 'Greenfield Residences'),
-(3, 5, 'Sto. Tomas, Batangas', 'Palm View Villas');
+(4, 20, 'Sabang', 'GDR-2'),
+(6, 20, 'Sabang', 'GDR-1'),
+(7, 20, 'Sabang', 'GDR-3'),
+(9, 23, 'Sabang', 'GDR-1'),
+(11, 20, 'Sabang', 'GDR-5');
 
 -- --------------------------------------------------------
 
@@ -409,6 +392,7 @@ CREATE TABLE `unit_tbl` (
   `unit_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `property_id` int(11) NOT NULL,
+  `unit_name` varchar(100) NOT NULL,
   `rent` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -416,11 +400,9 @@ CREATE TABLE `unit_tbl` (
 -- Dumping data for table `unit_tbl`
 --
 
-INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `rent`) VALUES
-(1, 2, 1, 8500),
-(2, 3, 1, 9000),
-(3, 4, 2, 10000),
-(4, 2, 3, 12000);
+INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `unit_name`, `rent`) VALUES
+(7, 20, 6, 'A-1', 1000),
+(10, 23, 9, 'A-3', 5000);
 
 -- --------------------------------------------------------
 
@@ -430,20 +412,21 @@ INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `rent`) VALUES
 
 CREATE TABLE `user_role_tbl` (
   `role_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `role_type` enum('1','2','3') DEFAULT NULL
+  `user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_role_tbl`
 --
 
-INSERT INTO `user_role_tbl` (`role_id`, `user_id`, `role_type`) VALUES
-(1, 1, '1'),
-(1, 5, '1'),
-(2, 2, '2'),
-(2, 3, '2'),
-(2, 4, '2');
+INSERT INTO `user_role_tbl` (`role_id`, `user_id`) VALUES
+(1, 19),
+(1, 20),
+(1, 22),
+(1, 23),
+(2, 21),
+(2, 26),
+(3, 8);
 
 -- --------------------------------------------------------
 
@@ -463,11 +446,13 @@ CREATE TABLE `user_tbl` (
 --
 
 INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`) VALUES
-(1, 'Juan Dela Cruz', 'landlord123', '09171234567'),
-(2, 'Maria Santos', 'tenant123', '09179876543'),
-(3, 'Jose Reyes', 'tenant456', '09174561234'),
-(4, 'Ana Dizon', 'tenant789', '09178889999'),
-(5, 'Pedro Lopez', 'landlord456', '09175559999');
+(8, 'System Admin', '$2y$10$80F5se/rkY5LJMIGNphgM.zyp6oB/.sQKksPVBQeGM8MWfDdE3juO', '09999999999'),
+(19, 'jet', '$2y$10$jv9fBS2mVViQcQwhIlTUluZM3cxbfHli7sVUFoYqUHQnXUBRCm9w2', '09123123123'),
+(20, 'jarell', '$2y$10$HY52uYJPa3iZ8oz.bkxuQuYitNup570TR3krojiEX5XvVXVxR8vcm', '09123987123'),
+(21, 'jet', '$2y$10$ZyDGz.YtvFssFkyJb5Sr5.HhNGRMlZUCj95JMt4fNI7ZHv9F5iZ3C', '09876543211'),
+(22, 'kyle', '$2y$10$0z/FfSad/mArBPio9xwfXutgmjHIg7EGidmBIVHX1gb8CnjvTjbq2', '09345345345'),
+(23, 'emm', '$2y$10$cIBs8xKEGpWQiOYA/LumveDZuf0zON.8C9rJmFYRFfnI4s0/Bel72', '09991112221'),
+(26, 'howie', '$2y$10$U080iyYMHv0cisYOmpsmLOCFZ500APq1et0HV92Crwz59fQbDOxTS', '09777888999');
 
 --
 -- Indexes for dumped tables
@@ -555,7 +540,7 @@ ALTER TABLE `user_tbl`
 -- AUTO_INCREMENT for table `lease_tbl`
 --
 ALTER TABLE `lease_tbl`
-  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `maintenance_tbl`
@@ -579,13 +564,13 @@ ALTER TABLE `otp_tbl`
 -- AUTO_INCREMENT for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `property_tbl`
 --
 ALTER TABLE `property_tbl`
-  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `role_tbl`
@@ -597,13 +582,13 @@ ALTER TABLE `role_tbl`
 -- AUTO_INCREMENT for table `unit_tbl`
 --
 ALTER TABLE `unit_tbl`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `user_tbl`
 --
 ALTER TABLE `user_tbl`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Constraints for dumped tables
