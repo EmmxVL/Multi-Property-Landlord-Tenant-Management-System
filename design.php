@@ -5,13 +5,273 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unitly Tenant - My Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
-    <link rel="stylesheet" href="../../assets/styles.css">
-    <script src="../../assets/script.js" defer></script>
-    <script src="../../assets/landlord.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans">
 
+<style>
+body {
+  box-sizing: border-box;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+.property-card {
+    transition: all 0.3s ease;
+}
+
+.property-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* File Upload Styles */
+.file-upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
+.file-upload-area.dragover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* Receipt Gallery */
+.receipt-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.receipt-item {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.receipt-item:hover {
+    transform: scale(1.05);
+}
+
+/* Maintenance Request Status */
+.status-pending { 
+    background-color: #fef3c7; 
+    color: #92400e; 
+}
+
+.status-in-progress { 
+    background-color: #dbeafe; 
+    color: #1e40af; 
+}
+
+.status-completed { 
+    background-color: #dcfce7; 
+    color: #166534; 
+}
+
+.status-urgent { 
+    background-color: #fecaca; 
+    color: #991b1b; 
+}
+
+/* Property Info Cards */
+.info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #10b981;
+    z-index: 1001;
+    animation: slideIn 0.3s ease-out;
+    max-width: 400px;
+}
+
+.notification.error {
+    border-left-color: #ef4444;
+}
+
+.notification.warning {
+    border-left-color: #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .receipt-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f4f6;
+    border-radius: 50%;
+    border-top-color: #3b82f6;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Interactive Elements */
+.interactive-hover:hover {
+    background-color: #f8fafc;
+    cursor: pointer;
+}
+
+/* Form Enhancements */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    border-color: transparent;
+}
+
+/* Button Variants */
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+}
+
+.btn-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #d97706;
+}
+</style>
+
+    <!-- Header -->
     <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -20,104 +280,65 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800">Unitly Tenant</h1>
-                    <p class="text-xs text-slate-500">Welcome, <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Tenant'); ?>!</p>
+                    <p class="text-xs text-slate-500">My Dashboard</p>
                 </div>
             </div>
-
             <div class="flex items-center space-x-4">
-    
+                <button class="relative p-2 text-slate-600 hover:text-blue-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 1 0-15 0v5h5l-5 5-5-5h5V7a12 12 0 1 1 24 0v10z"/>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></span>
+                </button>
                 <div class="flex items-center space-x-2">
-                     <span class="text-slate-700 text-sm hidden sm:inline"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?></span>
-                     <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                         <?php // Initials
-                             $fullName = $_SESSION['full_name'] ?? 'LU'; $names = explode(' ', $fullName);
-                             $initials = ($names[0][0] ?? '') . ($names[1][0] ?? ''); echo htmlspecialchars(strtoupper($initials) ?: 'U');
-                         ?>
-                     </div>
-                     <a href="../logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                     </a>
+                    <span class="text-slate-700 text-sm">Alice Brown</span>
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        AB
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-<div class="flex flex-wrap gap-6 mb-8 fade-in">
-  <!-- Monthly Rent -->
-  <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card flex-1 min-w-[280px]">
-    <div class="flex items-center justify-between">
-            <?php if (!empty($leases)): ?>
-                <?php foreach ($leases as $row): ?>
-                    <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-slate-600 text-sm font-medium"><?= htmlspecialchars($row['unit_name']) ?></p>
-                                <p class="text-3xl font-bold text-slate-800 mt-1">
-                                    ₱<?= number_format($row['rent']); ?>
-                                </p>
-                                <p class="text-xs text-green-600 mt-1">
-                                    Lease: <?= date("M j, Y", strtotime($row['lease_start_date'])); ?> 
-                                    → <?= date("M j, Y", strtotime($row['lease_end_date'])); ?>
-                                </p>
-                            </div>
-                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="text-slate-500 text-center col-span-full">No active leases found.</p>
-            <?php endif; ?>
-        </div>
-  </div>
+    <main class="max-w-7xl mx-auto px-6 py-8">
+         <div>
+                <label for="receipt" class="block text-sm font-medium text-slate-700 mb-1">Upload Receipt</label>
+                <input type="file" name="receipt" id="receipt" accept=".jpg,.jpeg,.png,.pdf" required
+                       class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
             </div>
-
- <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card flex-1 min-w-[280px]">
-    <div class="flex items-center justify-between">
-        <div>
-            <p class="text-slate-600 text-sm font-medium">Payment Status</p>
-
-            <?php
-            // Determine payment status text & color dynamically
-            $payment_status = $lease['payment_status'] ?? 'Unpaid';
-            $status_color = ($payment_status === 'Paid') ? 'text-green-600' : 'text-red-600';
-
-            // Format payment date (if available)
-            $last_payment_date = !empty($lease['payment_date'])
-                ? date("M j, Y", strtotime($lease['payment_date']))
-                : 'No payment recorded';
-            ?>
-
-            <p class="text-xl font-bold <?= $status_color ?> mt-1">
-                <?= htmlspecialchars($payment_status) ?>
-            </p>
-            <p class="text-xs text-slate-600 mt-1">
-                Last: <?= htmlspecialchars($last_payment_date) ?>
-            </p>
-        </div>
-
-        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <?php if ($payment_status === 'Paid'): ?>
-                <!-- Check Icon (Paid) -->
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            <?php else: ?>
-                <!-- Warning Icon (Unpaid) -->
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            <?php endif; ?>
-        </div>
-    </div>
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-600 text-sm font-medium">Monthly Rent</p>
+                        <p class="text-3xl font-bold text-slate-800 mt-1">$1,200</p>
+                        <p class="text-xs text-green-600 mt-1">Due: Dec 1st</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-600 text-sm font-medium">Payment Status</p>
+                        <p class="text-xl font-bold text-green-600 mt-1">Paid</p>
+                        <p class="text-xs text-slate-600 mt-1">Last: Nov 28, 2024</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
                 <div class="flex items-center justify-between">
@@ -150,7 +371,70 @@
                 </div>
             </div>
         </div>
-
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"><!-- Next Payment Due --> <!--?php if ($nextPayment): ?-->
+   <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <div class="flex items-center justify-between mb-4">
+     <h3 class="text-xl font-semibold text-slate-800">Next Payment Due</h3>
+     <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+      <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+      </svg>
+     </div>
+    </div>
+    <div class="space-y-3">
+     <div class="flex justify-between items-center py-2 border-b border-slate-100"><span class="text-slate-600 text-sm">Unit</span> <span class="font-semibold text-slate-800"><!--?= htmlspecialchars($nextPayment['unit_name']) ?--></span>
+     </div>
+     <div class="flex justify-between items-center py-2 border-b border-slate-100"><span class="text-slate-600 text-sm">Amount Due</span> <span class="font-bold text-lg text-slate-800">₱<!--?= number_format($nextPayment['balance'], 2) ?--></span>
+     </div>
+     <div class="flex justify-between items-center py-2 border-b border-slate-100"><span class="text-slate-600 text-sm">Due Date</span> <span class="font-semibold text-slate-800"><!--?= htmlspecialchars($nextPayment['lease_end_date']) ?--></span>
+     </div>
+    </div>
+    <div class="mt-6"><!--?php if ($nextPayment['balance'] --> 0): ?&gt; <a href="../makePayment.php?lease_id=<?= $nextPayment['lease_id'] ?>" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg><span>Pay Now</span> </a>
+    </div><a href="../makePayment.php?lease_id=<?= $nextPayment['lease_id'] ?>" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"> <!--?php else: ?-->
+     <div class="w-full bg-green-50 border border-green-200 text-green-700 font-semibold py-3 px-4 rounded-lg text-center flex items-center justify-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg><span>Paid in Full</span>
+     </div><!--?php endif; ?--> </a>
+   </section>
+  </div><a href="../makePayment.php?lease_id=<?= $nextPayment['lease_id'] ?>" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"> <!--?php endif; ?--> <!-- Active Leases -->
+   <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <div class="flex items-center justify-between mb-4">
+     <h3 class="text-xl font-semibold text-slate-800">My Active Leases</h3>
+     <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+      <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewbox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+      </svg>
+     </div>
+    </div><!--?php if ($leases): ?-->
+    <div class="overflow-x-auto">
+     <table class="w-full text-sm">
+      <thead>
+       <tr class="border-b border-slate-200">
+        <th class="text-left py-3 px-2 font-semibold text-slate-700">Unit</th>
+        <th class="text-left py-3 px-2 font-semibold text-slate-700">Start</th>
+        <th class="text-left py-3 px-2 font-semibold text-slate-700">End</th>
+        <th class="text-left py-3 px-2 font-semibold text-slate-700">Balance</th>
+        <th class="text-left py-3 px-2 font-semibold text-slate-700">Status</th>
+       </tr>
+      </thead>
+      <tbody><!--?php foreach ($leases as $lease): ?-->
+       <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+        <td class="py-3 px-2 font-medium text-slate-800"><!--?= htmlspecialchars($lease['unit_name']) ?--></td>
+        <td class="py-3 px-2 text-slate-600"><!--?= htmlspecialchars($lease['lease_start_date']) ?--></td>
+        <td class="py-3 px-2 text-slate-600"><!--?= htmlspecialchars($lease['lease_end_date']) ?--></td>
+        <td class="py-3 px-2 font-semibold text-slate-800">₱<!--?= number_format((float)$lease['balance'], 2) ?--></td>
+        <td class="py-3 px-2"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        <?= $lease['lease_status'] === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>"> <!--?= htmlspecialchars($lease['lease_status']) ?--> </span></td>
+       </tr><!--?php endforeach; ?-->
+      </tbody>
+     </table>
+    </div><!--?php else: ?-->
+    <div class="text-center py-8">
+     <svg class="w-12 h-12 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+     </svg>
+     <p class="text-slate-500 italic">No active leases found.</p>
+    </div><!--?php endif; ?-->
+   </section> </a>
         <!-- Main Dashboard Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Property Information -->
@@ -772,64 +1056,431 @@
 
     <!-- Notification Container -->
     <div id="notification-container"></div>
-    <footer class="bg-blue-900 text-white mt-12">
-        <div class="max-w-7xl mx-auto px-6 py-16">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-2xl font-bold mb-6 text-blue-100">CompanyName</h3>
-                    <h4 class="text-lg font-semibold mb-3 text-blue-200">Our Vision</h4>
-                    <p class="text-blue-100 leading-relaxed text-sm">To revolutionize property management by fostering seamless connections between landlords and tenants.</p>
-                </div>
 
-                <div>
-                    <h4 class="text-xl font-semibold mb-6 text-blue-200">Contact Us</h4>
-                    <p class="text-blue-100 text-sm">004, Pilahan East, Sabang, Lipa City</p>
-                    <p class="text-blue-100 text-sm">+63 (0906) 581-6503</p>
-                    <p class="text-blue-100 text-sm">Unitlyph@gmail.com</p>
-                    <p class="text-blue-100 text-sm">www.unitly.com</p>
-                </div>
+    <script>
+// Tenant Dashboard JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal Management
+    const modals = {
+        receipt: document.getElementById('receipt-modal'),
+        maintenance: document.getElementById('maintenance-modal'),
+        property: document.getElementById('property-modal')
+    };
 
-                <div>
-                    <h4 class="text-xl font-semibold mb-6 text-blue-200">Quick Links</h4>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="footer-link">About Us</a></li>
-                        <li><a href="#" class="footer-link">Our Services</a></li>
-                        <li><a href="#" class="footer-link">Developers</a></li>
-                    </ul>
-                </div>
+    // Button Event Listeners
+    const buttons = {
+        uploadReceipt: document.getElementById('upload-receipt-btn'),
+        uploadReceipt2: document.getElementById('upload-receipt-btn-2'),
+        maintenanceRequest: document.getElementById('maintenance-request-btn'),
+        viewPropertyDetails: document.getElementById('view-property-details'),
+        saveReceipt: document.getElementById('save-receipt-btn'),
+        submitMaintenance: document.getElementById('submit-maintenance-btn')
+    };
 
-                <div>
-                    <h4 class="text-xl font-semibold mb-6 text-blue-200">Stay Connected</h4>
-                    <div class="flex space-x-4 mb-6">
-                        <a href="#" class="social-icon"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775..."/></svg></a>
-                        <a href="#" class="social-icon"><svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M22.46 6c-.77.35-1.6..."/></svg></a>
-                    </div>
+    // Modal Functions
+    function openModal(modalName) {
+        if (modals[modalName]) {
+            modals[modalName].style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+    }
 
-                    <h5 class="text-lg font-medium mb-3 text-blue-200">Newsletter</h5>
-                    <form id="newsletter-form" class="space-y-3">
-                        <input type="email" id="newsletter-email" placeholder="Enter your email" class="newsletter-input" required>
-                        <button type="submit" class="newsletter-btn">Subscribe</button>
-                    </form>
+    function closeModal(modalName) {
+        if (modals[modalName]) {
+            modals[modalName].style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function closeAllModals() {
+        Object.keys(modals).forEach(modalName => {
+            closeModal(modalName);
+        });
+    }
+
+    // Event Listeners for Opening Modals
+    if (buttons.uploadReceipt) {
+        buttons.uploadReceipt.addEventListener('click', () => openModal('receipt'));
+    }
+
+    if (buttons.uploadReceipt2) {
+        buttons.uploadReceipt2.addEventListener('click', () => openModal('receipt'));
+    }
+
+    if (buttons.maintenanceRequest) {
+        buttons.maintenanceRequest.addEventListener('click', () => openModal('maintenance'));
+    }
+
+    if (buttons.viewPropertyDetails) {
+        buttons.viewPropertyDetails.addEventListener('click', () => openModal('property'));
+    }
+
+    // Event Listeners for Closing Modals
+    const closeButtons = [
+        'close-receipt-modal',
+        'close-maintenance-modal',
+        'close-property-modal'
+    ];
+
+    closeButtons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.addEventListener('click', closeAllModals);
+        }
+    });
+
+    // Close modals when clicking outside
+    Object.values(modals).forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeAllModals();
+                }
+            });
+        }
+    });
+
+    // File Upload Functionality
+    function setupFileUpload(uploadAreaId, fileInputId, previewId) {
+        const uploadArea = document.getElementById(uploadAreaId);
+        const fileInput = document.getElementById(fileInputId);
+        const preview = document.getElementById(previewId);
+
+        if (uploadArea && fileInput) {
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect(files[0], preview);
+                }
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0], preview);
+                }
+            });
+        }
+    }
+
+    function handleFileSelect(file, preview) {
+        if (preview) {
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            
+            if (fileName) fileName.textContent = file.name;
+            if (fileSize) fileSize.textContent = formatFileSize(file.size);
+            
+            preview.classList.remove('hidden');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Setup file uploads
+    setupFileUpload('file-upload-area', 'receipt-file', 'file-preview');
+    setupFileUpload('maintenance-file-upload', 'maintenance-photos', null);
+
+    // Remove file functionality
+    const removeFileBtn = document.getElementById('remove-file');
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            const fileInput = document.getElementById('receipt-file');
+            const preview = document.getElementById('file-preview');
+            
+            if (fileInput) fileInput.value = '';
+            if (preview) preview.classList.add('hidden');
+        });
+    }
+
+    // Receipt Upload
+    if (buttons.saveReceipt) {
+        buttons.saveReceipt.addEventListener('click', function() {
+            const form = document.querySelector('#receipt-modal');
+            const requiredInputs = form.querySelectorAll('select, input[type="number"], input[type="date"]');
+            
+            let isValid = true;
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = '#ef4444';
+                } else {
+                    input.style.borderColor = '#e2e8f0';
+                }
+            });
+
+            if (isValid) {
+                showNotification('Payment receipt uploaded successfully!', 'success');
+                closeAllModals();
+                // Clear form
+                requiredInputs.forEach(input => input.value = '');
+                const fileInput = document.getElementById('receipt-file');
+                const preview = document.getElementById('file-preview');
+                if (fileInput) fileInput.value = '';
+                if (preview) preview.classList.add('hidden');
+            } else {
+                showNotification('Please fill in all required fields', 'error');
+            }
+        });
+    }
+
+    // Maintenance Request Submission
+    if (buttons.submitMaintenance) {
+        buttons.submitMaintenance.addEventListener('click', function() {
+            const form = document.querySelector('#maintenance-modal');
+            const requiredInputs = form.querySelectorAll('select, input[type="text"], textarea');
+            const priorityRadios = form.querySelectorAll('input[name="priority"]');
+            const contactRadios = form.querySelectorAll('input[name="contact-method"]');
+            
+            let isValid = true;
+            
+            // Check required fields
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = '#ef4444';
+                } else {
+                    input.style.borderColor = '#e2e8f0';
+                }
+            });
+
+            // Check priority selection
+            const prioritySelected = Array.from(priorityRadios).some(radio => radio.checked);
+            if (!prioritySelected) {
+                isValid = false;
+                showNotification('Please select a priority level', 'error');
+            }
+
+            // Check contact method selection
+            const contactSelected = Array.from(contactRadios).some(radio => radio.checked);
+            if (!contactSelected) {
+                isValid = false;
+                showNotification('Please select a preferred contact method', 'error');
+            }
+
+            if (isValid) {
+                const requestId = generateRequestId();
+                showNotification(`Maintenance request #${requestId} submitted successfully!`, 'success');
+                closeAllModals();
+                
+                // Clear form
+                requiredInputs.forEach(input => input.value = '');
+                priorityRadios.forEach(radio => radio.checked = false);
+                contactRadios.forEach(radio => radio.checked = false);
+            } else if (isValid !== false) {
+                showNotification('Please fill in all required fields', 'error');
+            }
+        });
+    }
+
+    // Notification System
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        const icon = getNotificationIcon(type);
+        notification.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    ${icon}
                 </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-slate-800">${message}</p>
+                </div>
+                <button class="flex-shrink-0 text-slate-400 hover:text-slate-600" onclick="this.parentElement.parentElement.remove()">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
-        </div>
+        `;
 
-        <div class="border-t border-blue-700">
-            <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center">
-                <div class="text-blue-200 text-sm">© 2024 Unitly. All rights reserved.</div>
-                <div class="flex space-x-6 text-sm">
-                    <a href="#" class="footer-bottom-link">Privacy Policy</a>
-                    <a href="#" class="footer-bottom-link">Terms of Service</a>
-                    <a href="#" class="footer-bottom-link">Cookie Policy</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+        container.appendChild(notification);
 
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
 
+    function getNotificationIcon(type) {
+        const icons = {
+            success: `<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>`,
+            error: `<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>`,
+            warning: `<svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>`,
+            info: `<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>`
+        };
+        return icons[type] || icons.info;
+    }
+
+    // Utility Functions
+    function generateRequestId() {
+        return 'MR' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount);
+    }
+
+    function formatDate(date) {
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }).format(new Date(date));
+    }
+
+    // Initialize UI enhancements
+    function initializeUI() {
+        // Add loading states to buttons
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (!this.classList.contains('loading')) {
+                    this.classList.add('loading');
+                    setTimeout(() => {
+                        this.classList.remove('loading');
+                    }, 1000);
+                }
+            });
+        });
+
+        // Initialize fade-in animations for cards
+        const cards = document.querySelectorAll('.property-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+
+        // Set current date as default for receipt upload
+        const dateInput = document.querySelector('input[type="date"]');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Escape key closes all modals
+        if (e.key === 'Escape') {
+            closeAllModals();
+        }
+        
+        // Ctrl/Cmd + U opens upload receipt modal
+        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+            e.preventDefault();
+            openModal('receipt');
+        }
+        
+        // Ctrl/Cmd + M opens maintenance request modal
+        if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+            e.preventDefault();
+            openModal('maintenance');
+        }
+    });
+
+    // Form Validation Enhancement
+    function addRealTimeValidation() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.hasAttribute('required') || this.value.trim()) {
+                    if (!this.value.trim()) {
+                        this.style.borderColor = '#ef4444';
+                    } else {
+                        this.style.borderColor = '#e2e8f0';
+                    }
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.style.borderColor === 'rgb(239, 68, 68)') {
+                    if (this.value.trim()) {
+                        this.style.borderColor = '#e2e8f0';
+                    }
+                }
+            });
+        });
+    }
+
+    // Initialize everything
+    initializeUI();
+    addRealTimeValidation();
+
+    // Show welcome message
+    setTimeout(() => {
+        showNotification('Welcome to your Unitly tenant dashboard!', 'success');
+    }, 1000);
+
+    // Simulate real-time updates (in a real app, this would come from a server)
+    function simulateRealTimeUpdates() {
+        // Simulate maintenance request status updates
+        setTimeout(() => {
+            const maintenanceCards = document.querySelectorAll('.status-pending');
+            if (maintenanceCards.length > 0) {
+                // This would be triggered by real server updates
+                console.log('Maintenance request status updated');
+            }
+        }, 30000);
+    }
+
+    simulateRealTimeUpdates();
+});
+
+// Export functions for external use
+window.TenantDashboard = {
+    showNotification: function(message, type) {
+        const event = new CustomEvent('showNotification', {
+            detail: { message, type }
+        });
+        document.dispatchEvent(event);
+    },
+    
+    uploadReceipt: function(receiptData) {
+        // This would handle programmatic receipt uploads
+        console.log('Receipt uploaded:', receiptData);
+    },
+    
+    submitMaintenanceRequest: function(requestData) {
+        // This would handle programmatic maintenance requests
+        console.log('Maintenance request submitted:', requestData);
+    }
+};
     </script>
-    <script src="assets/script.js"></script>
-     <script src="assets/tenant.js"></script>
-   <script src="assets/styles.css"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9881166ce658b9f0',t:'MTc1OTM3NTQ3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994a85bac43384a6',t:'MTc2MTQ4NzY3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
