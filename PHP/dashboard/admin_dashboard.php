@@ -8,7 +8,7 @@ if (!isset($_SESSION["user_id"])) {
 
 // Redirect if not logged in as Admin
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Admin") {
-    header("Location: login_page.php"); // Redirect to login page
+    header("Location: ../..login_page.php"); // Redirect to login page
     exit;
 }
 
