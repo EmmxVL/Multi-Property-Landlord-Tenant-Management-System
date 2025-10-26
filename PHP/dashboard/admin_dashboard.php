@@ -115,10 +115,20 @@ try {
                                         <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['user_id']); ?></td>
                                         <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['full_name']); ?></td>
                                         <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['phone_no']); ?></td>
-                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800">
-                                            <button class="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
-                                            <button class="text-red-600 hover:text-red-800">Delete</button>
+                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800 flex gap-2">
+                                            <!-- Edit / Manage button -->
+                                            <a href="../manageLandlord.php?user_id=<?php echo urlencode($landlord['user_id']); ?>" 
+                                            class="text-blue-600 hover:text-blue-800">Edit</a>
+                                            
+                                            <!-- Delete button -->
+                                            <form method="POST" action="../landlordManager.php" onsubmit="return confirm('Are you sure you want to delete this landlord?');" class="inline">
+                                                <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($landlord['user_id']); ?>">
+                                                <input type="hidden" name="action" value="delete">
+                                                <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                            </form>
                                         </td>
+
+
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

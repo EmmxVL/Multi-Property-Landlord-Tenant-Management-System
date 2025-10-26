@@ -81,5 +81,26 @@ class PropertyManager {
             ":user_id" => $this->userId
         ]);
     }
+
+    /* -------------------- DASHBOARD VIEW -------------------- */
+    public function getDashboardPropertiesWithUnits(int $limit = 5): array {
+        $stmt = $this->db->prepare("
+            SELECT 
+                p.property_id, 
+                p.property_name, 
+                p.location, 
+                COUNT(u.unit_id) AS unit_count
+            FROM property_tbl p
+            LEFT JOIN unit_tbl u ON p.property_id = u.property_id
+            WHERE p.user_id = :user_id
+            GROUP BY p.property_id
+            ORDER BY p.property_id DESC
+            LIMIT :limit
+        ");
+        $stmt->bindValue(":user_id", $this->userId, PDO::PARAM_INT);
+        $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
