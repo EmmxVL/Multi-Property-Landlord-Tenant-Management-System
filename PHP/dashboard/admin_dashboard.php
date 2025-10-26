@@ -117,7 +117,7 @@ try {
                                         <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['phone_no']); ?></td>
                                         <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800 flex gap-2">
                                             <!-- Edit / Manage button -->
-                                            <a href="../manageLandlord.php?user_id=<?php echo urlencode($landlord['user_id']); ?>" 
+                                            <a href="../../PHP/manageLandlord.php?user_id=<?php echo urlencode($landlord['user_id']); ?>" 
                                             class="text-blue-600 hover:text-blue-800">Edit</a>
                                             
                                             <!-- Delete button -->

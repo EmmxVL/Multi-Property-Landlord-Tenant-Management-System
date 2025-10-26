@@ -51,7 +51,8 @@ if (!$landlord) {
     <h2 class="text-2xl font-semibold mb-6 text-gray-800">Edit Landlord</h2>
     <form action="landlordManager.php" method="POST" class="space-y-4">
         <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($landlord['user_id']); ?>">
-        <input type="hidden" name="action" value="edit">
+       <input type="hidden" name="action" value="update">
+
 
         <div>
             <label class="block text-gray-700 mb-1">Full Name</label>
