@@ -49,9 +49,10 @@ unset($_SESSION['login_error']);
             </div>
             <button type="submit" class="btn btn-primary btn-block">Login</button>
 
-            <div class="text-center mt-2">
-                <small>Forgot Password? <a href="otp_enter.html">Click here</a></small>
-            </div>
+             <p class="text-center text-sm mt-3">
+                <a href="forgotPassword.php" class="text-blue-600 hover:underline">Forgot Password?</a>
+             </p>
+
         </form>
     </div>
 </div>

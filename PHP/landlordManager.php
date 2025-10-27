@@ -30,25 +30,6 @@ class LandlordManager {
         }
     }
 
-    public function addLandlord(string $fullName, string $phone, string $password): bool {
-        try {
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->db->prepare("INSERT INTO user_tbl (full_name, phone_no, password) VALUES (:full_name, :phone, :password)");
-            $stmt->execute([
-                ':full_name' => $fullName,
-                ':phone' => $phone,
-                ':password' => $hashed
-            ]);
-            $userId = $this->db->lastInsertId();
-            $stmt = $this->db->prepare("INSERT INTO user_role_tbl (user_id, role_id) VALUES (:user_id, 1)");
-            $stmt->execute([':user_id' => $userId]);
-            return true;
-        } catch (PDOException $e) {
-            $_SESSION['admin_error'] = "Error adding landlord: " . $e->getMessage();
-            return false;
-        }
-    }
-
     public function updateLandlord(int $userId, string $fullName, string $phone, ?string $password = null): bool {
         try {
             $stmt = $this->db->prepare("UPDATE user_tbl SET full_name = :full_name, phone_no = :phone WHERE user_id = :id");
