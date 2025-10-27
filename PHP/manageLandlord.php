@@ -106,7 +106,7 @@ exit;
             </div>
             <div class="flex gap-3">
                 <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg">Save Changes</button>
-                <a href="../../dashboard/admin_dashboard.php" class="flex-1 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg">Cancel</a>
+                <a href="dashboard/admin_dashboard.php" class="flex-1 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-lg">Cancel</a>
             </div>
         </form>
     </div>
