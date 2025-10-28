@@ -135,5 +135,3 @@ This project is developed for **academic purposes** at **Batangas State Universi
 ---
 
 ## ✨ Tagline
-
-**“Leading Innovations, Transforming Lives, Building the Nation.”**
