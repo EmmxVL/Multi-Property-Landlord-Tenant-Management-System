@@ -8,7 +8,6 @@
 
   <!-- Supabase JS SDK -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-
   <script>
     // ✅ Replace with your real project details
     const supabaseUrl = 'https://twclndmhuifqjqmgpyfs.supabase.co';
