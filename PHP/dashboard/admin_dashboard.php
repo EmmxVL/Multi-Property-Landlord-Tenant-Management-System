@@ -221,56 +221,183 @@ try {
             </button>
         </div>
 
-        <div class="grid grid-cols-1 gap-8">
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-xl font-semibold text-slate-800 mb-4">Landlord Management</h3>
-                <p class="text-slate-600 mb-4">Manage landlord accounts from here.</p>
-                <?php if (!empty($landlords)): ?>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full table-auto border-collapse border border-slate-300">
-                            <thead class="bg-slate-100">
-                                <tr>
-                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">ID</th>
-                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Full Name</th>
-                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Phone Number</th>
-                                    <th class="border border-slate-300 px-4 py-2 text-left text-sm font-medium text-slate-700">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($landlords as $landlord): ?>
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['user_id']); ?></td>
-                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['full_name']); ?></td>
-                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800"><?php echo htmlspecialchars($landlord['phone_no']); ?></td>
-                                        <td class="border border-slate-300 px-4 py-2 text-sm text-slate-800 flex gap-2">
-                                            <!-- Edit / Manage button -->
-                                            <a href="../manageLandlord.php?user_id=<?php echo urlencode($landlord['user_id']); ?>" 
-                                            class="text-blue-600 hover:text-blue-800">Edit</a>
-                                            
-                                            <!-- Delete button -->
-                                            <form method="POST" action="../landlordManager.php" onsubmit="return confirm('Are you sure you want to delete this landlord?');" class="inline">
-                                                <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($landlord['user_id']); ?>">
-                                                <input type="hidden" name="action" value="delete">
-                                                <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                                            </form>
-                                        </td>
-
-
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <p class="text-slate-500">No landlords found.</p>
-                <?php endif; ?>
-            </section>
-
-             <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="text-xl font-semibold text-slate-800 mb-4">System Overview</h3>
-                <p class="text-slate-600">Display key system statistics here.</p>
-            </section>
+        <?php if (!empty($landlords)): ?>
+        <!-- Controls Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+        <!-- Search -->
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" id="searchInput" placeholder="Search landlords..."
+                class="pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
+            </div>
         </div>
+
+        <!-- Sort + Export -->
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
+            <label class="text-sm font-medium text-slate-600">Sort by:</label>
+            <select id="sortBy"
+                class="text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="id-asc">ID (Low-High)</option>
+                <option value="id-desc">ID (High-Low)</option>
+                <option value="phone-asc">Phone (A-Z)</option>
+                <option value="phone-desc">Phone (Z-A)</option>
+            </select>
+            </div>
+
+            <!-- Export Button -->
+            <button id="exportBtn"
+            class="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors flex items-center space-x-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Export</span>
+            </button>
+        </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="landlordsTable">
+            <thead>
+            <tr class="border-b-2 border-slate-200 bg-slate-50">
+                <th class="text-left py-4 px-4 font-semibold text-slate-700">ID</th>
+                <th class="text-left py-4 px-4 font-semibold text-slate-700">Full Name</th>
+                <th class="text-left py-4 px-4 font-semibold text-slate-700">Phone Number</th>
+                <th class="text-left py-4 px-4 font-semibold text-slate-700">Status</th>
+                <th class="text-center py-4 px-4 font-semibold text-slate-700">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="landlordsTableBody">
+            <?php foreach ($landlords as $landlord): ?>
+            <tr
+                class="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150"
+                data-id="<?= htmlspecialchars($landlord['user_id']); ?>"
+                data-name="<?= htmlspecialchars($landlord['full_name']); ?>"
+                data-phone="<?= htmlspecialchars($landlord['phone_no']); ?>">
+                <td class="py-4 px-4 font-medium text-slate-700">#<?= htmlspecialchars($landlord['user_id']); ?></td>
+                <td class="py-4 px-4">
+                <div class="flex items-center space-x-3">
+                    <div
+                    class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <?= strtoupper(substr($landlord['full_name'], 0, 1)); ?>
+                    </div>
+                    <div>
+                    <p class="font-semibold text-slate-800"><?= htmlspecialchars($landlord['full_name']); ?></p>
+                    <p class="text-xs text-slate-500">Landlord ID: <?= htmlspecialchars($landlord['user_id']); ?></p>
+                    </div>
+                </div>
+                </td>
+                <td class="py-4 px-4 text-slate-700"><?= htmlspecialchars($landlord['phone_no']); ?></td>
+                <td class="py-4 px-4">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Active
+                </span>
+                </td>
+                <td class="py-4 px-4 text-center">
+                <div class="flex justify-center space-x-2">
+                    <a href="../manageLandlord.php?user_id=<?= urlencode($landlord['user_id']); ?>"
+                    class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg transition">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                    </a>
+                    <button
+                    onclick="confirmDelete(<?= htmlspecialchars($landlord['user_id']); ?>, '<?= htmlspecialchars($landlord['full_name']); ?>')"
+                    class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
+                    </button>
+                    <form id="deleteForm<?= htmlspecialchars($landlord['user_id']); ?>" method="POST"
+                    action="../landlordManager.php" class="hidden">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($landlord['user_id']); ?>">
+                    <input type="hidden" name="action" value="delete">
+                    </form>
+                </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+
+        <!-- Table Footer -->
+        <div class="mt-6 flex items-center justify-between">
+        <p class="text-sm text-slate-600">
+            Showing <span class="font-medium" id="showingCount"><?= count($landlords); ?></span> of
+            <span class="font-medium"><?= count($landlords); ?></span> landlords
+        </p>
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-slate-600">Total Active:</span>
+            <span
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <?= count($landlords); ?>
+            </span>
+        </div>
+        </div>
+
+        <?php else: ?>
+        <!-- Empty State -->
+        <div class="text-center py-12">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+        </div>
+        <h4 class="text-lg font-semibold text-slate-800 mb-2">No landlords found</h4>
+        <p class="text-slate-500 mb-4">Get started by adding your first landlord to the system.</p>
+        <button
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Add First Landlord
+        </button>
+        </div>
+        <?php endif; ?>
+    </section>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-800">Confirm Deletion</h3>
+        </div>
+        <p class="text-slate-600 mb-6">
+        Are you sure you want to delete <span id="deleteLandlordName" class="font-semibold"></span>?
+        This action cannot be undone.
+        </p>
+        <div class="flex items-center justify-end space-x-3">
+        <button onclick="closeDeleteModal()"
+            class="px-4 py-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+            Cancel
+        </button>
+        <button onclick="submitDelete()"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+            Delete Landlord
+        </button>
+        </div>
+    </div>
+    </div>
 
     </main>
    <!-- Add Landlord Modal -->

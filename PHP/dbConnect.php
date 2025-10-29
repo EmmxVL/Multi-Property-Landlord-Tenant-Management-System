@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "landlord_tenant_db";
+    private $db_name = "landlord_tenant_db(version 3)";
     private $username = "root";
     private $password = "";
     private $conn = null;
