@@ -58,123 +58,126 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="../assets/script.js" defer></script> 
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
+     <!-- Header -->
+<?php include '../assets/header.php'; ?>
+<main class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-10">
+  <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
+    
+    <!-- Header -->
+    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-6">
+      👥 <span>Manage Tenants</span>
+    </h1>
 
-    <!-- HEADER -->
-    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span class="text-white font-bold text-lg">U</span>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">Unitly Landlord</h1>
-                    <p class="text-xs text-slate-500">Welcome, <?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord') ?>!</p>
-                </div>
-            </div>
+    <!-- Flash Messages -->
+    <?php if (!empty($_SESSION["error"])): ?>
+      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-xl mb-6 text-sm">
+        <?= htmlspecialchars($_SESSION["error"]) ?>
+      </div>
+      <?php unset($_SESSION["error"]); ?>
+    <?php endif; ?>
 
-            <div class="flex items-center space-x-4">
-                <span class="text-slate-700 text-sm hidden sm:inline"><?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord') ?></span>
-                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    <?php 
-                        $fullName = $_SESSION['full_name'] ?? 'LU'; 
-                        $names = explode(' ', $fullName);
-                        $initials = ($names[0][0] ?? '') . ($names[1][0] ?? ''); 
-                        echo htmlspecialchars(strtoupper($initials) ?: 'U');
-                    ?>
-                </div>
-                <a href="logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                </a>
-            </div>
+    <?php if (!empty($_SESSION["success"])): ?>
+      <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-xl mb-6 text-sm">
+        <?= htmlspecialchars($_SESSION["success"]) ?>
+      </div>
+      <?php unset($_SESSION["success"]); ?>
+    <?php endif; ?>
+
+    <!-- Add Tenant Form -->
+    <form method="POST" class="space-y-4 mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
+      <div>
+        <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
+        <input type="text" id="full_name" name="full_name"
+               class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+               placeholder="e.g., Juan Dela Cruz" required>
+      </div>
+
+      <div>
+        <label for="phone_no" class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
+        <input type="text" id="phone_no" name="phone_no"
+               class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+               placeholder="e.g., 09123456789" required>
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+        <input type="password" id="password" name="password"
+               class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+               placeholder="Set an account password" required>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" name="add_tenant"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+          ➕ Add Tenant
+        </button>
+      </div>
+    </form>
+
+    <!-- Tenant List -->
+    <h2 class="text-2xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+      🧾 Your Tenants
+    </h2>
+
+    <?php if (count($tenants) > 0): ?>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm text-slate-700">
+          <thead class="bg-slate-100 border-b border-slate-300 text-slate-800 font-semibold">
+            <tr>
+              <th class="p-3 text-left">Full Name</th>
+              <th class="p-3 text-left">Phone Number</th>
+              <th class="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($tenants as $tenant): ?>
+              <tr class="hover:bg-blue-50 transition-all duration-150 border-b border-slate-200">
+                <td class="p-3 font-medium text-slate-800"><?= htmlspecialchars($tenant["full_name"]) ?></td>
+                <td class="p-3"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
+                <td class="p-3 text-center space-x-2">
+                  <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" 
+                     class="text-blue-600 hover:text-blue-800 font-medium hover:underline">
+                    Edit
+                  </a>
+                  <span class="text-slate-400">|</span>
+                  <a href="?delete=<?= $tenant['user_id'] ?>" 
+                     onclick="return confirm('Are you sure you want to delete this tenant?')" 
+                     class="text-red-600 hover:text-red-800 font-medium hover:underline">
+                    Delete
+                  </a>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <!-- Empty State -->
+      <div class="text-center py-10">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5m10 0a2 2 0 110 4m0-4v2m0-6V4m-6 6v10m-6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+          </svg>
         </div>
-    </header>
+        <p class="text-slate-500 font-medium text-lg mb-1">No tenants yet</p>
+        <p class="text-slate-400 text-sm">Add new tenants using the form above.</p>
+      </div>
+    <?php endif; ?>
 
-    <!-- MAIN CONTENT -->
-    <div class="max-w-4xl mx-auto bg-white mt-10 p-6 rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">👥 Manage Tenants</h1>
-
-        <!-- ✅ Display messages -->
-        <?php if (!empty($_SESSION["error"])): ?>
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                <?= htmlspecialchars($_SESSION["error"]) ?>
-            </div>
-            <?php unset($_SESSION["error"]); ?>
-        <?php endif; ?>
-
-        <?php if (!empty($_SESSION["success"])): ?>
-            <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-                <?= htmlspecialchars($_SESSION["success"]) ?>
-            </div>
-            <?php unset($_SESSION["success"]); ?>
-        <?php endif; ?>
-
-        <!-- ✅ Add Tenant Form -->
-        <form action="manageTenants.php" method="POST" class="mb-6 space-y-4">
-            <input type="text" name="full_name" placeholder="Full Name" class="w-full border p-2 rounded" required>
-            <input type="text" name="phone_no" placeholder="Phone Number" class="w-full border p-2 rounded" required>
-            <input type="password" name="password" placeholder="Password" class="w-full border p-2 rounded" required>
-            <button type="submit" name="add_tenant" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                ➕ Add Tenant
-            </button>
-        </form>
-
-        <!-- ✅ Tenant List -->
-        <h2 class="text-xl font-semibold mb-3">Your Tenants</h2>
-
-        <?php if (count($tenants) > 0): ?>
-            <table class="w-full border-collapse border border-slate-300 text-sm">
-                <thead class="bg-slate-200">
-                    <tr>
-                        <th class="border p-2 text-left">Full Name</th>
-                        <th class="border p-2 text-left">Phone Number</th>
-                        <th class="border p-2 text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($tenants as $tenant): ?>
-                        <tr class="hover:bg-slate-50">
-                            <td class="border p-2"><?= htmlspecialchars($tenant["full_name"]) ?></td>
-                            <td class="border p-2"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
-                            <td class="border p-2 text-center">
-                                <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" class="text-blue-600 hover:underline">Edit</a> |
-                                <a href="?delete=<?= $tenant['user_id'] ?>" onclick="return confirm('Delete this tenant?')" class="text-red-600 hover:underline">Delete</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p class="text-slate-500 mt-4">No tenants yet.</p>
-        <?php endif; ?>
-
-        <div class="mt-6">
-            <a href="dashboard/landlord_dashboard.php" class="text-blue-600 hover:underline">← Back to Dashboard</a>
-        </div>
+    <!-- Back to Dashboard -->
+    <div class="mt-8 text-center">
+      <a href="dashboard/landlord_dashboard.php"
+         class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-all duration-150">
+        ← Back to Dashboard
+      </a>
     </div>
+  </div>
+</main>
 
-    <!-- FOOTER -->
-    <footer class="bg-blue-900 text-white mt-12">
-        <div class="max-w-7xl mx-auto px-6 py-16">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-2xl font-bold mb-6 text-blue-100">Unitly</h3>
-                    <p class="text-blue-100 leading-relaxed text-sm">Helping landlords manage tenants with ease.</p>
-                </div>
-                <div>
-                    <h4 class="text-xl font-semibold mb-6 text-blue-200">Contact Us</h4>
-                    <p class="text-blue-100 text-sm">004 Pilahan East, Sabang, Lipa City</p>
-                    <p class="text-blue-100 text-sm">+63 (906) 581-6503</p>
-                    <p class="text-blue-100 text-sm">unitlyph@gmail.com</p>
-                </div>
-            </div>
-        </div>
-        <div class="border-t border-blue-700 py-4 text-center text-blue-200 text-sm">
-            © <?= date("Y") ?> Unitly. All rights reserved.
-        </div>
-    </footer>
+
+     
+<?php include '../assets/footer.php'; ?>
 </body>
 </html>
 z
