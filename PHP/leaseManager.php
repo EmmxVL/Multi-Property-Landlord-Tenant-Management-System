@@ -47,7 +47,8 @@ class LeaseManager {
                     l.lease_status,
                     u.unit_name,
                     t.full_name AS tenant_name,
-                    t.phone_no AS tenant_phone
+                    t.phone_no AS tenant_phone,
+                    p.location
                 FROM lease_tbl l
                 INNER JOIN unit_tbl u ON l.unit_id = u.unit_id
                 INNER JOIN user_tbl t ON l.user_id = t.user_id
@@ -72,7 +73,8 @@ class LeaseManager {
                 SELECT 
                     l.*, 
                     u.unit_name, 
-                    p.property_name
+                    p.property_name,
+                    p.location
                 FROM lease_tbl l
                 INNER JOIN unit_tbl u ON l.unit_id = u.unit_id
                 INNER JOIN property_tbl p ON u.property_id = p.property_id
@@ -119,10 +121,10 @@ class LeaseManager {
     public function terminateLease(int $leaseId): bool {
         return $this->updateLeaseStatus($leaseId, 'Terminated');
     }
-      /**
- * Fetch a single lease by its ID.
- */
-// LeaseManager.php
+
+    /**
+     * Fetch a single lease by its ID.
+     */
     public function getLeaseByIdForTenant(int $leaseId, int $tenantId): ?array {
         $stmt = $this->db->prepare("
             SELECT 
@@ -134,7 +136,8 @@ class LeaseManager {
                 l.user_id,
                 l.lease_status,
                 u.unit_name,
-                p.property_name
+                p.property_name,
+                p.location
             FROM lease_tbl l
             INNER JOIN unit_tbl u ON l.unit_id = u.unit_id
             INNER JOIN property_tbl p ON u.property_id = p.property_id
@@ -151,19 +154,20 @@ class LeaseManager {
         return $lease ?: null;
     }
 
-
+    /**
+     * Update lease balance.
+     */
     public function updateLeaseBalance(int $leaseId, float $newBalance): bool {
-    try {
-        $stmt = $this->db->prepare("UPDATE lease_tbl SET balance = :balance WHERE lease_id = :lease_id");
-        return $stmt->execute([
-            ':balance' => $newBalance,
-            ':lease_id' => $leaseId
-        ]);
-    } catch (PDOException $e) {
-        $_SESSION['tenant_error'] = "Failed to update lease balance: " . $e->getMessage();
-        return false;
+        try {
+            $stmt = $this->db->prepare("UPDATE lease_tbl SET balance = :balance WHERE lease_id = :lease_id");
+            return $stmt->execute([
+                ':balance' => $newBalance,
+                ':lease_id' => $leaseId
+            ]);
+        } catch (PDOException $e) {
+            $_SESSION['tenant_error'] = "Failed to update lease balance: " . $e->getMessage();
+            return false;
+        }
     }
-}
-
 }
 ?>

@@ -88,7 +88,7 @@ if (!$landlord) {
     <!-- Form -->
     <form action="landlordManager.php" method="POST" class="space-y-6" id="editForm">
       <input type="hidden" name="user_id" value="<?= htmlspecialchars($landlord['user_id']); ?>">
-      <input type="hidden" name="action" value="edit">
+      <input type="hidden" name="action" value="update">
 
       <!-- Full Name -->
       <div>
@@ -137,15 +137,17 @@ if (!$landlord) {
           <input type="password" name="password" id="passwordInput"
             class="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-slate-50 focus:bg-white"
             placeholder="Leave blank to keep current password">
-          <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center">
-            <svg class="w-5 h-5 text-slate-400 hover:text-slate-600" id="eyeIcon" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
+            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center">
+  <svg class="w-5 h-5 text-slate-400 hover:text-slate-600" id="eyeIcon" fill="none" stroke="currentColor"
+    viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+  </svg>
+</button>
+
+         
         </div>
         <p class="text-xs text-slate-500 mt-1">Leave empty to keep the current password unchanged</p>
       </div>
@@ -220,6 +222,41 @@ if (!$landlord) {
     });
     <?php unset($_SESSION['admin_error']); ?>
 <?php endif; ?>
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const passwordInput = document.getElementById("passwordInput");
+  const togglePassword = document.getElementById("togglePassword");
+  const eyeIcon = document.getElementById("eyeIcon");
+
+  if (!passwordInput || !togglePassword || !eyeIcon) return;
+
+  togglePassword.addEventListener("click", () => {
+    const showing = passwordInput.type === "text";
+    passwordInput.type = showing ? "password" : "text";
+
+    // Swap eye icon SVG when toggled
+    eyeIcon.innerHTML = showing
+      ? `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5
+             c4.478 0 8.268 2.943 9.542 7
+             -1.274 4.057-5.064 7-9.542 7
+             -4.477 0-8.268-2.943-9.542-7z" />
+      `
+      : `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13.875 18.825A10.05 10.05 0 0112 19
+             c-4.478 0-8.268-2.943-9.542-7
+             a10.034 10.034 0 013.354-4.568
+             m3.218-1.704A9.956 9.956 0 0112 5
+             c4.478 0 8.268 2.943 9.542 7
+             a9.966 9.966 0 01-4.132 4.868M3 3l18 18" />
+      `;
+  });
+});
 </script>
 
 </body>
