@@ -24,5 +24,6 @@ $database = new Database();
 $db = $database->getConnection();
 
 $manager = new AccountManager($db);
-$manager->createTenant($fullName, $phone, $password);
+$manager->createTenant((int)$_SESSION['user_id'], $fullName, $phone, $password);
+
 ?>

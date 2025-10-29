@@ -1,59 +1,52 @@
 <?php
 session_start();
-require_once "dbConnect.php";
-require_once "AccountManager.php"; // Use AccountManager instead
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// ✅ Only landlords can access
+require_once "dbConnect.php";
+require_once "AccountManager.php";
+
+// ✅ Restrict access to Landlords only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: ../login_page.php");
+    header("Location: login_page.php");
     exit;
 }
 
-$userId = $_SESSION["user_id"];
-$db = (new Database())->getConnection();
-$accountManager = new AccountManager($db);
+$database = new Database();
+$db = $database->getConnection();
+$manager = new AccountManager($db);
 
-// ✅ Add new tenant
+// ✅ Get landlord ID from session
+$landlordId = (int)($_SESSION["user_id"] ?? 0);
+
+// ✅ Handle tenant creation (form submission)
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_tenant"])) {
-    $fullName = trim($_POST["full_name"]);
-    $phone = trim($_POST["phone_no"]);
-    $password = trim($_POST["password"]);
+    $fullName = trim($_POST["full_name"] ?? '');
+    $phone = trim($_POST["phone_no"] ?? '');
+    $password = trim($_POST["password"] ?? '');
 
-    try {
-        $accountManager->createTenant($fullName, $phone, $password); // redirect handled inside
-    } catch (Exception $e) {
-        $_SESSION["error"] = "Failed to create tenant: " . $e->getMessage();
-        header("Location: manageTenants.php");
-        exit;
+    if (empty($fullName) || empty($phone) || empty($password)) {
+        $_SESSION["error"] = "All fields are required.";
+    } else {
+        $manager->createTenant($landlordId, $fullName, $phone, $password);
+        $_SESSION["success"] = "Tenant added successfully.";
     }
-}
 
-// ✅ Delete tenant
-if (isset($_GET["delete"])) {
-    $tenantId = (int)$_GET["delete"];
-    try {
-        $stmt = $db->prepare("DELETE FROM user_tbl WHERE user_id = :id");
-        $stmt->execute([":id" => $tenantId]);
-        $_SESSION["success"] = "Tenant deleted successfully.";
-    } catch (PDOException $e) {
-        $_SESSION["error"] = "Error deleting tenant: " . $e->getMessage();
-    }
     header("Location: manageTenants.php");
     exit;
 }
 
-// ✅ Fetch all tenants (role_id = 2)
+// ✅ Fetch tenants belonging to this landlord
 $stmt = $db->prepare("
     SELECT u.user_id, u.full_name, u.phone_no
     FROM user_tbl u
     INNER JOIN user_role_tbl ur ON u.user_id = ur.user_id
-    WHERE ur.role_id = 2
+    WHERE ur.role_id = 2 AND u.landlord_id = :landlord_id
     ORDER BY u.full_name ASC
 ");
-$stmt->execute();
+$stmt->execute([":landlord_id" => $landlordId]);
 $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,6 +58,8 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="../assets/script.js" defer></script> 
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
+
+    <!-- HEADER -->
     <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -73,12 +68,12 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800">Unitly Landlord</h1>
-                    <p class="text-xs text-slate-500">Welcome, <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?>!</p>
+                    <p class="text-xs text-slate-500">Welcome, <?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord') ?>!</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
-                <span class="text-slate-700 text-sm hidden sm:inline"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Landlord'); ?></span>
+                <span class="text-slate-700 text-sm hidden sm:inline"><?= htmlspecialchars($_SESSION['full_name'] ?? 'Landlord') ?></span>
                 <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
                     <?php 
                         $fullName = $_SESSION['full_name'] ?? 'LU'; 
@@ -97,9 +92,11 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </header>
 
+    <!-- MAIN CONTENT -->
     <div class="max-w-4xl mx-auto bg-white mt-10 p-6 rounded-xl shadow-lg">
         <h1 class="text-2xl font-bold text-slate-800 mb-6">👥 Manage Tenants</h1>
 
+        <!-- ✅ Display messages -->
         <?php if (!empty($_SESSION["error"])): ?>
             <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
                 <?= htmlspecialchars($_SESSION["error"]) ?>
@@ -114,15 +111,17 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php unset($_SESSION["success"]); ?>
         <?php endif; ?>
 
-        <!-- Add Tenant Form -->
-        <form method="POST" class="mb-6 space-y-4">
+        <!-- ✅ Add Tenant Form -->
+        <form action="manageTenants.php" method="POST" class="mb-6 space-y-4">
             <input type="text" name="full_name" placeholder="Full Name" class="w-full border p-2 rounded" required>
             <input type="text" name="phone_no" placeholder="Phone Number" class="w-full border p-2 rounded" required>
             <input type="password" name="password" placeholder="Password" class="w-full border p-2 rounded" required>
-            <button type="submit" name="add_tenant" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">➕ Add Tenant</button>
+            <button type="submit" name="add_tenant" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                ➕ Add Tenant
+            </button>
         </form>
 
-        <!-- List of Tenants -->
+        <!-- ✅ Tenant List -->
         <h2 class="text-xl font-semibold mb-3">Your Tenants</h2>
 
         <?php if (count($tenants) > 0): ?>
@@ -156,6 +155,7 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- FOOTER -->
     <footer class="bg-blue-900 text-white mt-12">
         <div class="max-w-7xl mx-auto px-6 py-16">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -172,9 +172,9 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
         <div class="border-t border-blue-700 py-4 text-center text-blue-200 text-sm">
-            © <?php echo date("Y"); ?> Unitly. All rights reserved.
+            © <?= date("Y") ?> Unitly. All rights reserved.
         </div>
     </footer>
 </body>
 </html>
-y
+z
