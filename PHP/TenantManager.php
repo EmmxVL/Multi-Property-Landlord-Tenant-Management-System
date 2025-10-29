@@ -14,28 +14,21 @@ class TenantManager {
 
     /* -------------------- READ -------------------- */
     public function getTenants(): array {
-        // If there's a landlord_tenant_tbl, filter by landlord
-        if ($this->tenantLinkExists()) {
+        try {
             $stmt = $this->db->prepare("
                 SELECT u.user_id, u.full_name, u.phone_no
                 FROM user_tbl u
-                INNER JOIN landlord_tenant_tbl lt ON lt.tenant_id = u.user_id
-                WHERE lt.landlord_id = :landlord_id
-                ORDER BY u.full_name ASC
-            ");
-            $stmt->execute([":landlord_id" => $this->landlordId]);
-        } else {
-            // Otherwise show all tenants (role_id = 2)
-            $stmt = $this->db->prepare("
-                SELECT u.user_id, u.full_name, u.phone_no
-                FROM user_tbl u
-                INNER JOIN user_role_tbl ur ON u.user_id = ur.user_id
+                INNER JOIN user_role_tbl ur ON ur.user_id = u.user_id
                 WHERE ur.role_id = 2
+                AND u.landlord_id = :landlord_id
                 ORDER BY u.full_name ASC
             ");
-            $stmt->execute();
+            $stmt->execute([':landlord_id' => $this->landlordId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $_SESSION['error'] = "Error fetching tenants: " . $e->getMessage();
+            return [];
         }
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /* -------------------- UPDATE -------------------- */
@@ -47,29 +40,31 @@ class TenantManager {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $this->db->prepare("
                     UPDATE user_tbl 
-                    SET full_name = :name, phone_no = :phone, password = :password 
-                    WHERE user_id = :id
+                    SET full_name = :name, phone_no = :phone, password = :password
+                    WHERE user_id = :id AND landlord_id = :landlord_id
                 ");
                 return $stmt->execute([
                     ":name" => $fullName,
                     ":phone" => $normalizedPhone,
                     ":password" => $hashed,
-                    ":id" => $tenantId
+                    ":id" => $tenantId,
+                    ":landlord_id" => $this->landlordId
                 ]);
             } else {
                 $stmt = $this->db->prepare("
                     UPDATE user_tbl 
-                    SET full_name = :name, phone_no = :phone 
-                    WHERE user_id = :id
+                    SET full_name = :name, phone_no = :phone
+                    WHERE user_id = :id AND landlord_id = :landlord_id
                 ");
                 return $stmt->execute([
                     ":name" => $fullName,
                     ":phone" => $normalizedPhone,
-                    ":id" => $tenantId
+                    ":id" => $tenantId,
+                    ":landlord_id" => $this->landlordId
                 ]);
             }
         } catch (PDOException $e) {
-            $_SESSION["error"] = "Database error: " . $e->getMessage();
+            $_SESSION["error"] = "Error updating tenant: " . $e->getMessage();
             return false;
         }
     }
@@ -77,8 +72,14 @@ class TenantManager {
     /* -------------------- DELETE -------------------- */
     public function deleteTenant(int $tenantId): bool {
         try {
-            $stmt = $this->db->prepare("DELETE FROM user_tbl WHERE user_id = :id");
-            return $stmt->execute([":id" => $tenantId]);
+            $stmt = $this->db->prepare("
+                DELETE FROM user_tbl
+                WHERE user_id = :id AND landlord_id = :landlord_id
+            ");
+            return $stmt->execute([
+                ":id" => $tenantId,
+                ":landlord_id" => $this->landlordId
+            ]);
         } catch (PDOException $e) {
             $_SESSION["error"] = "Error deleting tenant: " . $e->getMessage();
             return false;
@@ -95,15 +96,6 @@ class TenantManager {
             $phone = '0' . $phone;
         }
         return $phone;
-    }
-
-    private function tenantLinkExists(): bool {
-        try {
-            $stmt = $this->db->query("SHOW TABLES LIKE 'landlord_tenant_tbl'");
-            return $stmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            return false;
-        }
     }
 }
 ?>

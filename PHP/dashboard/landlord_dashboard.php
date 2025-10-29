@@ -56,6 +56,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="../../assets/styles.css">
     <script src="../../assets/script.js" defer></script>
+    <script src="../../landlord/script.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
 
@@ -90,81 +91,164 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     </div>
 </header>
 
-<main class="flex-grow max-w-7xl mx-auto px-6 py-8 w-full">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-semibold text-slate-800">Landlord Dashboard Overview</h2>
-    </div>
+<main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full bg-slate-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <h2 class="text-3xl font-semibold text-slate-800 tracking-tight">Landlord Dashboard Overview</h2>
+  </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <!-- Quick Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- My Properties -->
+    <section class="bg-white rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all duration-300 p-8">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5
+                   M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+      </div>
+      My Properties
+    </h3>
 
-        <!-- My Properties -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 class="text-xl font-semibold text-slate-800 mb-4">My Properties</h3>
-            <div class="space-y-3">
-                <?php if (!empty($properties)): ?>
-                    <?php foreach ($properties as $property): ?>
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                            <span class="font-medium text-slate-800"><?= htmlspecialchars($property['property_name']) ?></span><br>
-                            <span class="text-slate-600 text-sm"><?= htmlspecialchars($property['location']) ?></span>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p class="text-slate-500 italic">No properties found.</p>
-                <?php endif; ?>
+    <a href="../manageProperties.php"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold
+              transition-all duration-200 shadow-md hover:shadow-lg">
+      Manage All
+    </a>
+  </div>
+
+  <!-- Property List -->
+  <div class="space-y-4">
+    <?php if (!empty($properties)): ?>
+      <?php foreach ($properties as $property): ?>
+        <div class="group p-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50
+                    border border-slate-200 rounded-2xl hover:shadow-lg hover:border-blue-300
+                    transition-all duration-300 cursor-pointer">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h4 class="font-bold text-slate-800 text-lg mb-2 group-hover:text-blue-700 transition-colors">
+                <?= htmlspecialchars($property['property_name']) ?>
+              </h4>
+              <div class="flex items-center gap-2 text-slate-600">
+                <div class="w-5 h-5 bg-slate-200 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-medium">
+                  <?= htmlspecialchars($property['location']) ?>
+                </span>
+              </div>
             </div>
-            <a href="../manageProperties.php" class="mt-4 block text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
-                Manage Properties
-            </a>
-        </section>
 
-        <!-- My Tenants -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 class="text-xl font-semibold text-slate-800 mb-4">My Tenants</h3>
-            <div class="space-y-3">
-                <?php if (!empty($tenants)): ?>
-                    <?php foreach ($tenants as $tenant): ?>
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                            <span class="font-medium text-slate-800"><?= htmlspecialchars($tenant['full_name']) ?></span><br>
-                            <span class="text-slate-600 text-sm"><?= htmlspecialchars($tenant['phone_no']) ?></span>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p class="text-slate-500 italic">No tenants found.</p>
-                <?php endif; ?>
+            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
             </div>
-            <a href="../manageTenants.php" class="mt-4 block text-center bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
-               Manage Tenants
-            </a>
-        </section>
-    </div>
-
-    <!-- Lease Agreements & Payments -->
-    <section class="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Lease Agreements</h2>
-            <div class="flex space-x-2">
-                <a href="../addLease.php" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition">+ Add Lease</a>
-                <a href="../manageLease.php" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition">Manage Leases</a>
-            </div>
+          </div>
         </div>
+      <?php endforeach; ?>
 
-        <?php if (!empty($leases)): ?>
-            <?php foreach ($leases as $lease): ?>
-                <div class="mb-6 border border-gray-200 rounded-xl p-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <div>
-                            <h4 class="font-semibold text-gray-800"><?= htmlspecialchars($lease['unit_name']) ?> (Tenant: <?= htmlspecialchars($lease['tenant_name']) ?>)</h4>
-                            <p class="text-sm text-gray-600">
-                                Start: <?= htmlspecialchars($lease['lease_start_date']) ?> | End: <?= htmlspecialchars($lease['lease_end_date']) ?> | Balance: ₱<?= number_format($lease['balance'],2) ?>
-                            </p>
-                        </div>
-                        <span class="text-sm text-gray-500"><?= htmlspecialchars($lease['lease_status']) ?></span>
-                    </div>
+    <?php else: ?>
+      <!-- Empty State -->
+      <div class="text-center py-12">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5
+                     M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+        <p class="text-slate-500 font-medium text-lg mb-2">No properties yet</p>
+        <p class="text-slate-400 text-sm">Add your first property to get started</p>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
 
-                    <?php
-                        $recentPayment = !empty($paymentsByLease[$lease['lease_id']]) ? end($paymentsByLease[$lease['lease_id']]) : null;
-                    ?>
-                    <?php if ($recentPayment): ?>
+
+    <!-- My Tenants -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all duration-300 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5" />
+            <circle cx="12" cy="7" r="4" stroke-width="2" />
+          </svg>
+          My Tenants
+        </h3>
+        <a href="../manageTenants.php"
+           class="text-emerald-600 text-sm font-medium hover:underline">Manage</a>
+      </div>
+
+      <div class="space-y-3">
+        <?php if (!empty($tenants)): ?>
+          <?php foreach ($tenants as $tenant): ?>
+            <div class="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 border border-slate-200 rounded-lg hover:shadow transition-all">
+              <span class="font-semibold text-slate-800 block text-base">
+                <?= htmlspecialchars($tenant['full_name']) ?>
+              </span>
+              <span class="text-slate-600 text-sm flex items-center gap-1">
+                📞 <?= htmlspecialchars($tenant['phone_no']) ?>
+              </span>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <p class="text-slate-500 italic text-center py-4">No tenants found.</p>
+        <?php endif; ?>
+      </div>
+    </section>
+  </div>
+
+  <!-- Lease Agreements -->
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-10">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Lease Agreements
+      </h3>
+      <div class="flex space-x-2">
+        <a href="../addLease.php" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition">+ Add Lease</a>
+        <a href="../manageLease.php" class="bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 px-4 rounded-lg text-sm font-medium transition">Manage</a>
+      </div>
+    </div>
+
+    <?php if (!empty($leases)): ?>
+      <?php foreach ($leases as $lease): ?>
+        <div class="mb-6 border border-gray-200 rounded-xl p-5 hover:shadow transition">
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <h4 class="font-semibold text-slate-800">
+                <?= htmlspecialchars($lease['unit_name']) ?> 
+                <span class="text-slate-500 text-sm"> (Tenant: <?= htmlspecialchars($lease['tenant_name']) ?>)</span>
+              </h4>
+              <p class="text-sm text-slate-600 mt-1">
+                🗓 Start: <?= htmlspecialchars($lease['lease_start_date']) ?> | End: <?= htmlspecialchars($lease['lease_end_date']) ?> <br>
+                💰 Balance: <span class="font-semibold text-rose-600">₱<?= number_format($lease['balance'],2) ?></span>
+              </p>
+            </div>
+            <span class="text-sm px-3 py-1 rounded-full 
+              <?= $lease['lease_status'] == 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' ?>">
+              <?= htmlspecialchars($lease['lease_status']) ?>
+            </span>
+          </div>
+
+          <!-- Payment Info -->
+          <?php
+              $recentPayment = !empty($paymentsByLease[$lease['lease_id']]) ? end($paymentsByLease[$lease['lease_id']]) : null;
+          ?>
+ <?php if ($recentPayment): ?>
                         <p class="text-sm mb-2">
                             <strong>Recent Payment:</strong> ₱<?= number_format($recentPayment['amount'],2) ?> on <?= htmlspecialchars($recentPayment['payment_date']) ?> | Status: <?= htmlspecialchars($recentPayment['status']) ?>
                         </p>
@@ -228,6 +312,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         <?php endif; ?>
     </section>
 </main>
+
 
 <footer class="bg-blue-900 text-white mt-12">
     <div class="max-w-7xl mx-auto px-6 py-16">
