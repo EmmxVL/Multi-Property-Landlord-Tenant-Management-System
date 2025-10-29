@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 26, 2025 at 12:58 PM
+-- Generation Time: Oct 29, 2025 at 02:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -250,12 +250,8 @@ CREATE TABLE `lease_tbl` (
 --
 
 INSERT INTO `lease_tbl` (`lease_id`, `lease_start_date`, `lease_end_date`, `balance`, `unit_id`, `user_id`, `lease_status`) VALUES
-(5, '2026-10-27', '2027-10-27', 0.00, 7, 21, 'Terminated'),
-(6, '2026-10-27', '2026-10-27', 0.00, 7, 21, 'Terminated'),
-(7, '2026-10-27', '2027-10-26', 0.00, 7, 21, 'Terminated'),
-(8, '2026-10-27', '2027-10-27', 1000000.00, 7, 21, 'Terminated'),
-(9, '2025-10-26', '2026-10-26', 0.00, 7, 21, 'Active'),
-(10, '2026-10-26', '2027-10-26', 254000.00, 7, 26, 'Active');
+(13, '2026-10-26', '2027-10-26', 9900000.00, 13, 38, 'Active'),
+(14, '2026-10-26', '2027-10-26', 1930000.00, 14, 41, 'Active');
 
 -- --------------------------------------------------------
 
@@ -325,18 +321,9 @@ CREATE TABLE `payment_tbl` (
 --
 
 INSERT INTO `payment_tbl` (`payment_id`, `lease_id`, `user_id`, `unit_id`, `amount`, `payment_date`, `receipt_upload`, `payment_status`) VALUES
-(15, 5, 21, 7, 7.00, '2025-10-26', '2000', ''),
-(16, 5, 21, 7, 7.00, '2025-10-26', '2000', ''),
-(17, 5, 21, 7, 2000.00, '2025-10-26', '1761473213_money.jpeg', 'Ongoing'),
-(18, 5, 21, 7, 2000.00, '2025-10-26', '1761473225_money.jpeg', 'Ongoing'),
-(19, 6, 21, 7, 5000.00, '2025-10-26', '1761474608_money.jpeg', 'Ongoing'),
-(20, 6, 21, 7, 5000.00, '2025-10-26', '1761475376_money.jpeg', 'Confirmed'),
-(21, 6, 21, 7, 50000.00, '2025-10-26', '1761479131_money.jpeg', 'Ongoing'),
-(22, 7, 21, 7, 200000.00, '2025-10-26', '1761479525_money.jpeg', 'Ongoing'),
-(23, 9, 21, 7, 10000.00, '2025-10-26', '1761479614_money.jpeg', 'Ongoing'),
-(24, 9, 21, 7, 91000.00, '2025-10-26', '1761479639_money.jpeg', 'Ongoing'),
-(25, 10, 26, 7, 123000.00, '2025-10-26', '1761479747_money.jpeg', 'Ongoing'),
-(26, 10, 26, 7, 123000.00, '2025-10-26', '1761479755_money.jpeg', 'Ongoing');
+(31, 13, 38, 13, 100000.00, '2025-10-29', '1761736240_money.jpeg', 'Confirmed'),
+(32, 14, 41, 14, 20000.00, '2025-10-29', '1761744685_PBI_LuceroRalph.png', 'Ongoing'),
+(33, 14, 41, 14, 50000.00, '2025-10-29', '1761744733_PBI_LuceroRalph.png', 'Ongoing');
 
 -- --------------------------------------------------------
 
@@ -356,11 +343,8 @@ CREATE TABLE `property_tbl` (
 --
 
 INSERT INTO `property_tbl` (`property_id`, `user_id`, `location`, `property_name`) VALUES
-(4, 20, 'Sabang', 'GDR-2'),
-(6, 20, 'Sabang', 'GDR-1'),
-(7, 20, 'Sabang', 'GDR-3'),
-(9, 23, 'Sabang', 'GDR-1'),
-(11, 20, 'Sabang', 'GDR-5');
+(14, 37, 'Sabang', 'GDR-1'),
+(15, 39, 'Sabang', 'GDR-1');
 
 -- --------------------------------------------------------
 
@@ -385,6 +369,49 @@ INSERT INTO `role_tbl` (`role_id`, `role_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tenant_info`
+--
+
+CREATE TABLE `tenant_info` (
+  `user_id` int(11) NOT NULL,
+  `full_name` varchar(100) NOT NULL,
+  `birthdate` date DEFAULT NULL,
+  `age` int(11) DEFAULT NULL,
+  `gender` enum('Male','Female','Other') DEFAULT NULL,
+  `contact_number` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `id_type` varchar(50) DEFAULT NULL,
+  `id_number` varchar(50) DEFAULT NULL,
+  `id_photo` varchar(255) DEFAULT NULL,
+  `birth_certificate` varchar(255) DEFAULT NULL,
+  `tenant_photo` varchar(255) DEFAULT NULL,
+  `occupation` varchar(100) DEFAULT NULL,
+  `employer_name` varchar(100) DEFAULT NULL,
+  `monthly_income` decimal(10,2) DEFAULT NULL,
+  `proof_of_income` varchar(255) DEFAULT NULL,
+  `property_id` int(11) DEFAULT NULL,
+  `unit_id` int(11) DEFAULT NULL,
+  `lease_start_date` date DEFAULT NULL,
+  `lease_end_date` date DEFAULT NULL,
+  `monthly_rent` decimal(10,2) DEFAULT NULL,
+  `lease_status` enum('Active','Expired','Pending','Terminated') DEFAULT 'Pending',
+  `emergency_name` varchar(100) DEFAULT NULL,
+  `emergency_contact` varchar(20) DEFAULT NULL,
+  `relationship` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tenant_info`
+--
+
+INSERT INTO `tenant_info` (`user_id`, `full_name`, `birthdate`, `age`, `gender`, `contact_number`, `email`, `id_type`, `id_number`, `id_photo`, `birth_certificate`, `tenant_photo`, `occupation`, `employer_name`, `monthly_income`, `proof_of_income`, `property_id`, `unit_id`, `lease_start_date`, `lease_end_date`, `monthly_rent`, `lease_status`, `emergency_name`, `emergency_contact`, `relationship`, `created_at`, `updated_at`) VALUES
+(41, 'Filemon Laurel', '2010-10-10', 15, 'Male', '09444555666', 'lele@gmail.com', NULL, NULL, NULL, NULL, NULL, 'Teacher', 'Monmon', 40000.00, NULL, NULL, NULL, NULL, NULL, NULL, 'Pending', 'Fifi', '09987987987', 'Wife', '2025-10-29 12:58:40', '2025-10-29 13:29:50');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `unit_tbl`
 --
 
@@ -401,8 +428,8 @@ CREATE TABLE `unit_tbl` (
 --
 
 INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `unit_name`, `rent`) VALUES
-(7, 20, 6, 'A-1', 1000),
-(10, 23, 9, 'A-3', 5000);
+(13, 37, 14, 'A-1', 100000),
+(14, 39, 15, 'A-1', 100000);
 
 -- --------------------------------------------------------
 
@@ -420,12 +447,12 @@ CREATE TABLE `user_role_tbl` (
 --
 
 INSERT INTO `user_role_tbl` (`role_id`, `user_id`) VALUES
-(1, 19),
-(1, 20),
-(1, 22),
-(1, 23),
-(2, 21),
-(2, 26),
+(1, 37),
+(1, 39),
+(1, 42),
+(2, 38),
+(2, 40),
+(2, 41),
 (3, 8);
 
 -- --------------------------------------------------------
@@ -438,21 +465,22 @@ CREATE TABLE `user_tbl` (
   `user_id` int(11) NOT NULL,
   `full_name` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `phone_no` varchar(15) NOT NULL
+  `phone_no` varchar(15) NOT NULL,
+  `landlord_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_tbl`
 --
 
-INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`) VALUES
-(8, 'System Admin', '$2y$10$80F5se/rkY5LJMIGNphgM.zyp6oB/.sQKksPVBQeGM8MWfDdE3juO', '09999999999'),
-(19, 'jet', '$2y$10$jv9fBS2mVViQcQwhIlTUluZM3cxbfHli7sVUFoYqUHQnXUBRCm9w2', '09123123123'),
-(20, 'jarell', '$2y$10$HY52uYJPa3iZ8oz.bkxuQuYitNup570TR3krojiEX5XvVXVxR8vcm', '09123987123'),
-(21, 'jet', '$2y$10$ZyDGz.YtvFssFkyJb5Sr5.HhNGRMlZUCj95JMt4fNI7ZHv9F5iZ3C', '09876543211'),
-(22, 'kyle', '$2y$10$0z/FfSad/mArBPio9xwfXutgmjHIg7EGidmBIVHX1gb8CnjvTjbq2', '09345345345'),
-(23, 'emm', '$2y$10$cIBs8xKEGpWQiOYA/LumveDZuf0zON.8C9rJmFYRFfnI4s0/Bel72', '09991112221'),
-(26, 'howie', '$2y$10$U080iyYMHv0cisYOmpsmLOCFZ500APq1et0HV92Crwz59fQbDOxTS', '09777888999');
+INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`, `landlord_id`) VALUES
+(8, 'System Admin', '$2y$10$80F5se/rkY5LJMIGNphgM.zyp6oB/.sQKksPVBQeGM8MWfDdE3juO', '09999999999', NULL),
+(37, 'Ralph Lucero', '$2y$10$9Aqxrkpy8wIdwD3xH0XOeuV18Yl00W3TJEF6cNK.SEJlS1xoiayBm', '09664677459', NULL),
+(38, 'emm', '$2y$10$.LrtDjynRMXR4PwHP1NLoOiGTWROvB.14tXZkTfs/ZZO03TvHgrBO', '09936467748', 37),
+(39, 'Lemon', '$2y$10$XitGcPD7PEd59FBNrjhtFOwdxH5LcLCzl8F8v/bVVu3EtMMoMU6JS', '09222333444', NULL),
+(40, 'laurel', '$2y$10$Xe9AAN2hS7lnM34faBSas.XkqC0YOPC9ay/Zku437/hvrVGH70S2W', '09333444555', 39),
+(41, 'lele', '$2y$10$Oh6c8GoBOZjMp.vFfhd.OeCoJus7ESxo.ursG2zN5P0cr6V05GOLK', '09444555666', 39),
+(42, 'Sean Martin', '$2y$10$vD9h5QBn4.V.P3GiUdrWoONBxTfwXzUGDUcg4DwZd1YVa3LG3rsBy', '09065816503', NULL);
 
 --
 -- Indexes for dumped tables
@@ -512,6 +540,14 @@ ALTER TABLE `role_tbl`
   ADD PRIMARY KEY (`role_id`);
 
 --
+-- Indexes for table `tenant_info`
+--
+ALTER TABLE `tenant_info`
+  ADD PRIMARY KEY (`user_id`),
+  ADD KEY `property_id` (`property_id`),
+  ADD KEY `unit_id` (`unit_id`);
+
+--
 -- Indexes for table `unit_tbl`
 --
 ALTER TABLE `unit_tbl`
@@ -540,7 +576,7 @@ ALTER TABLE `user_tbl`
 -- AUTO_INCREMENT for table `lease_tbl`
 --
 ALTER TABLE `lease_tbl`
-  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `maintenance_tbl`
@@ -564,13 +600,13 @@ ALTER TABLE `otp_tbl`
 -- AUTO_INCREMENT for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `property_tbl`
 --
 ALTER TABLE `property_tbl`
-  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `role_tbl`
@@ -582,13 +618,13 @@ ALTER TABLE `role_tbl`
 -- AUTO_INCREMENT for table `unit_tbl`
 --
 ALTER TABLE `unit_tbl`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `user_tbl`
 --
 ALTER TABLE `user_tbl`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- Constraints for dumped tables
@@ -634,6 +670,14 @@ ALTER TABLE `payment_tbl`
 --
 ALTER TABLE `property_tbl`
   ADD CONSTRAINT `property_tbl_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_tbl` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `tenant_info`
+--
+ALTER TABLE `tenant_info`
+  ADD CONSTRAINT `tenant_info_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_tbl` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tenant_info_ibfk_2` FOREIGN KEY (`property_id`) REFERENCES `property_tbl` (`property_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `tenant_info_ibfk_3` FOREIGN KEY (`unit_id`) REFERENCES `unit_tbl` (`unit_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `unit_tbl`
