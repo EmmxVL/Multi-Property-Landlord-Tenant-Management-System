@@ -1,59 +1,52 @@
 <?php
 session_start();
-require_once "dbConnect.php";
-require_once "AccountManager.php"; // Use AccountManager instead
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// ✅ Only landlords can access
+require_once "dbConnect.php";
+require_once "AccountManager.php";
+
+// ✅ Restrict access to Landlords only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: ../login_page.php");
+    header("Location: login_page.php");
     exit;
 }
 
-$userId = $_SESSION["user_id"];
-$db = (new Database())->getConnection();
-$accountManager = new AccountManager($db);
+$database = new Database();
+$db = $database->getConnection();
+$manager = new AccountManager($db);
 
-// ✅ Add new tenant
+// ✅ Get landlord ID from session
+$landlordId = (int)($_SESSION["user_id"] ?? 0);
+
+// ✅ Handle tenant creation (form submission)
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_tenant"])) {
-    $fullName = trim($_POST["full_name"]);
-    $phone = trim($_POST["phone_no"]);
-    $password = trim($_POST["password"]);
+    $fullName = trim($_POST["full_name"] ?? '');
+    $phone = trim($_POST["phone_no"] ?? '');
+    $password = trim($_POST["password"] ?? '');
 
-    try {
-        $accountManager->createTenant($fullName, $phone, $password); // redirect handled inside
-    } catch (Exception $e) {
-        $_SESSION["error"] = "Failed to create tenant: " . $e->getMessage();
-        header("Location: manageTenants.php");
-        exit;
+    if (empty($fullName) || empty($phone) || empty($password)) {
+        $_SESSION["error"] = "All fields are required.";
+    } else {
+        $manager->createTenant($landlordId, $fullName, $phone, $password);
+        $_SESSION["success"] = "Tenant added successfully.";
     }
-}
 
-// ✅ Delete tenant
-if (isset($_GET["delete"])) {
-    $tenantId = (int)$_GET["delete"];
-    try {
-        $stmt = $db->prepare("DELETE FROM user_tbl WHERE user_id = :id");
-        $stmt->execute([":id" => $tenantId]);
-        $_SESSION["success"] = "Tenant deleted successfully.";
-    } catch (PDOException $e) {
-        $_SESSION["error"] = "Error deleting tenant: " . $e->getMessage();
-    }
     header("Location: manageTenants.php");
     exit;
 }
 
-// ✅ Fetch all tenants (role_id = 2)
+// ✅ Fetch tenants belonging to this landlord
 $stmt = $db->prepare("
     SELECT u.user_id, u.full_name, u.phone_no
     FROM user_tbl u
     INNER JOIN user_role_tbl ur ON u.user_id = ur.user_id
-    WHERE ur.role_id = 2
+    WHERE ur.role_id = 2 AND u.landlord_id = :landlord_id
     ORDER BY u.full_name ASC
 ");
-$stmt->execute();
+$stmt->execute([":landlord_id" => $landlordId]);
 $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -187,4 +180,4 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php include '../assets/footer.php'; ?>
 </body>
 </html>
-y
+z

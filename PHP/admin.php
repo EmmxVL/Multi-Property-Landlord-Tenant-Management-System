@@ -21,7 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $fullName = trim($_POST["full_name"] ?? "");
     $phone = trim($_POST["phone"] ?? "");
     $password = trim($_POST["password"] ?? "");
-    $accountManager->createLandlord($fullName, $phone, $password);
+    $accountManager->addLandlord($fullName, $phone, $password);
+
 } else {
     header("Location: dashboard/admin_dashboard.php");
     exit;

@@ -1,5 +1,7 @@
 <?php
 session_start();
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 // Restrict access to tenants only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant" || !isset($_SESSION["user_id"])) {
@@ -10,7 +12,7 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant" || !isset($_SESS
 require_once "../dbConnect.php";
 require_once "../leaseManager.php";
 require_once "../paymentManager.php";
-
+require_once "../propertyManager.php";
 // Create DB connection
 $database = new Database();
 $db = $database->getConnection();
@@ -26,11 +28,17 @@ $totalLeases = $leases ? count($leases) : 0;
 $payments = $paymentManager->getPaymentsByTenant($userId);
 $nextPayment = $paymentManager->getNextDuePayment($userId);
 
+// Fetch tenant info (optional for display)
+$stmt = $db->prepare("SELECT * FROM tenant_info WHERE user_id = :user_id");
+$stmt->execute(['user_id' => $userId]);
+$tenantInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+
 // Session messages
 $tenantSuccess = $_SESSION['tenant_success'] ?? null;
 $tenantError   = $_SESSION['tenant_error'] ?? null;
 unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -295,59 +303,94 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
                 </div>
             </div>
 
-            <?php if ($payments): ?>
-            <!-- Payments Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm" id="paymentsTable">
+  <!-- Payments Table -->
+    <?php if ($payments): ?>
+        <div class="overflow-x-auto mb-8">
+            <table class="w-full text-sm" id="paymentsTable">
                 <thead>
                     <tr class="border-b-2 border-slate-200 bg-slate-50">
-                    <?php 
+                        <?php 
                         $headers = ['Unit','Date','Amount Paid','Balance After','Status','Receipt'];
-                        foreach ($headers as $h) echo "<th class='text-left py-4 px-4 font-semibold text-slate-700'>$h</th>";
-                    ?>
+                        foreach ($headers as $h) {
+                            echo "<th class='text-left py-4 px-4 font-semibold text-slate-700'>" . htmlspecialchars($h) . "</th>";
+                        }
+                        ?>
                     </tr>
                 </thead>
                 <tbody id="paymentsTableBody">
                     <?php foreach ($payments as $payment): ?>
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                    <td class="py-4 px-4 font-medium text-slate-800"><?= htmlspecialchars($payment['unit_name']) ?></td>
-                    <td class="py-4 px-4 text-slate-600">
-                        <div><?= date('M d, Y', strtotime($payment['payment_date'])) ?><br>
-                        <span class="text-xs text-slate-500"><?= date('g:i A', strtotime($payment['payment_date'])) ?></span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-4 font-bold text-green-600">₱<?= number_format((float)$payment['amount'], 2) ?></td>
-                    <td class="py-4 px-4 font-semibold text-slate-800">₱<?= number_format((float)$payment['balance_after_payment'], 2) ?></td>
-                    <td class="py-4 px-4">
-                        <?php
-                        $status = strtolower($payment['status']);
-                        $statusClasses = [
-                            'paid'=>'bg-green-100 text-green-800',
-                            'completed'=>'bg-green-100 text-green-800',
-                            'pending'=>'bg-yellow-100 text-yellow-800',
-                            'failed'=>'bg-red-100 text-red-800'
-                        ];
-                        $badge = $statusClasses[$status] ?? 'bg-gray-100 text-gray-800';
-                        ?>
-                        <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium <?= $badge ?>">
-                        <?= htmlspecialchars(ucfirst($payment['status'])) ?>
-                        </span>
-                    </td>
-                    <td class="py-4 px-4 text-center">
-                        <?php if ($payment['receipt_upload']): ?>
-                        <a href="../../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank"
-                            class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg">
-                            👁 View
-                        </a>
-                        <?php else: ?>
-                        <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-lg">N/A</span>
-                        <?php endif; ?>
-                    </td>
-                    </tr>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 font-medium text-slate-800"><?= htmlspecialchars($payment['unit_name']) ?></td>
+                            <td class="py-4 px-4 text-slate-600">
+                                <?= date('M d, Y', strtotime($payment['payment_date'])) ?><br>
+                                <span class="text-xs text-slate-500"><?= date('g:i A', strtotime($payment['payment_date'])) ?></span>
+                            </td>
+                            <td class="py-4 px-4 font-bold text-green-600">₱<?= number_format((float)$payment['amount'], 2) ?></td>
+                            <td class="py-4 px-4 font-semibold text-slate-800">₱<?= number_format((float)$payment['balance_after_payment'], 2) ?></td>
+                            <td class="py-4 px-4">
+                                <?php
+                                    $status = strtolower($payment['status']);
+                                    $statusClasses = [
+                                        'paid'=>'bg-green-100 text-green-800',
+                                        'completed'=>'bg-green-100 text-green-800',
+                                        'pending'=>'bg-yellow-100 text-yellow-800',
+                                        'failed'=>'bg-red-100 text-red-800'
+                                    ];
+                                    $badge = $statusClasses[$status] ?? 'bg-gray-100 text-gray-800';
+                                ?>
+                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium <?= $badge ?>">
+                                    <?= htmlspecialchars(ucfirst($payment['status'])) ?>
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <?php if ($payment['receipt_upload']): ?>
+                                    <a href="../../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank"
+                                        class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg">
+                                        👁 View
+                                    </a>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-lg">N/A</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
-                </table>
+            </table>
+        </div>
+    <?php else: ?>
+        <div class="text-center py-12 mb-8">
+            <p class="text-slate-500 italic">No payments found.</p>
+            <a href="../makePayment.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Make a Payment</a>
+        </div>
+    <?php endif; ?>
+
+    <!-- Tenant Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+        <h2 class="text-2xl font-semibold mb-4">My Information</h2>
+        <?php if ($tenantInfo): ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
+                <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
+                <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
+                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['contact_number']); ?></p>
+                <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
+                <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
+                <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
+                <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
             </div>
+        <?php else: ?>
+            <p class="text-gray-600">No information found yet.</p>
+        <?php endif; ?>
+        <div class="flex justify-end mt-6">
+            <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                View / Edit My Information
+            </a>
+        </div>
+    </div>
+</section>
+
+    
+</main>
 
             <!-- Footer -->
             <div class="mt-6 flex items-center justify-between">
@@ -358,22 +401,9 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
                 </div>
             </div>
 
-            <?php else: ?>
-            <!-- Empty State -->
-            <div class="text-center py-12">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                </div>
-                <h4 class="text-lg font-semibold text-slate-800 mb-2">No payments found</h4>
-                <p class="text-slate-500 mb-4">You haven't made any payments yet.</p>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Make a Payment</button>
-            </div>
-            <?php endif; ?>
-            </section>
+            
 
+  
 
         </div>
     </main>
