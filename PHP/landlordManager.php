@@ -30,7 +30,7 @@ class LandlordManager {
             // Normalize phone
             $phone = $this->normalizePhone($phone);
 
-            if ($password) {
+            if ($password && trim($password) !== "") {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $this->db->prepare("
                     UPDATE user_tbl 
@@ -66,7 +66,6 @@ class LandlordManager {
     /* -------------------- DELETE -------------------- */
     public function deleteLandlord(int $userId): bool {
         try {
-            // Remove landlord’s role and account
             $this->db->beginTransaction();
 
             $stmt = $this->db->prepare("DELETE FROM user_role_tbl WHERE user_id = :id");
