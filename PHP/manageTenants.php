@@ -132,7 +132,13 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <tbody>
             <?php foreach ($tenants as $tenant): ?>
               <tr class="hover:bg-blue-50 transition-all duration-150 border-b border-slate-200">
-                <td class="p-3 font-medium text-slate-800"><?= htmlspecialchars($tenant["full_name"]) ?></td>
+                <td class="p-3 font-medium text-slate-800">
+              <a href="viewTenant.php?id=<?= $tenant['user_id'] ?>" 
+                class="text-blue-600 hover:text-blue-800 hover:underline transition">
+                <?= htmlspecialchars($tenant["full_name"]) ?>
+              </a>
+          </td>
+
                 <td class="p-3"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
                 <td class="p-3 text-center space-x-2">
                   <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" 
