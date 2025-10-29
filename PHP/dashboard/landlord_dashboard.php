@@ -334,7 +334,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
 <!-- Lease Agreements + Maintenance Requests -->
 
-  <!-- Lease Agreements -->
+<!-- Lease Agreements -->
 <section class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl">
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
@@ -391,6 +391,67 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
             💰 <span class="font-medium">Balance:</span> 
             <span class="text-rose-600 font-semibold">₱<?= number_format($lease['balance'], 2) ?></span>
           </div>
+
+          <!-- View/Update Payments Button -->
+          <?php
+            $recentPayment = !empty($paymentsByLease[$lease['lease_id']]) ? end($paymentsByLease[$lease['lease_id']]) : null;
+          ?>
+          <p class="text-sm mt-2">
+            <?php if ($recentPayment): ?>
+              <strong>Recent Payment:</strong> ₱<?= number_format($recentPayment['amount'],2) ?> on <?= htmlspecialchars($recentPayment['payment_date']) ?> | Status: <?= htmlspecialchars($recentPayment['status']) ?>
+            <?php else: ?>
+              <span class="text-gray-500 italic">No payments recorded yet.</span>
+            <?php endif; ?>
+          </p>
+
+          <button onclick="document.getElementById('payment-modal-<?= $lease['lease_id'] ?>').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm mt-2">View / Update Payments</button>
+
+          <!-- Payment Modal -->
+          <div id="payment-modal-<?= $lease['lease_id'] ?>" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-xl w-full max-w-3xl relative">
+              <h3 class="text-lg font-semibold mb-4">Payments for <?= htmlspecialchars($lease['unit_name']) ?> (<?= htmlspecialchars($lease['tenant_name']) ?>)</h3>
+              <button onclick="document.getElementById('payment-modal-<?= $lease['lease_id'] ?>').classList.add('hidden')" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">&times;</button>
+
+              <table class="w-full text-left border border-gray-200 rounded-lg text-sm">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th class="py-1 px-2">Date</th>
+                    <th class="py-1 px-2">Amount Paid</th>
+                    <th class="py-1 px-2">Balance</th>
+                    <th class="py-1 px-2">Status</th>
+                    <th class="py-1 px-2">Receipt</th>
+                    <th class="py-1 px-2">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($paymentsByLease[$lease['lease_id']] as $payment): ?>
+                    <tr class="border-t border-gray-200">
+                      <td class="py-1 px-2"><?= htmlspecialchars($payment['payment_date']) ?></td>
+                      <td class="py-1 px-2">₱<?= number_format($payment['amount'],2) ?></td>
+                      <td class="py-1 px-2">₱<?= number_format($payment['balance_after_payment'],2) ?></td>
+                      <td class="py-1 px-2"><?= htmlspecialchars($payment['status']) ?></td>
+                      <td class="py-1 px-2">
+                        <?php if ($payment['receipt_upload']): ?>
+                          <a href="../../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank" class="text-blue-600 hover:underline">View</a>
+                        <?php else: ?>N/A<?php endif; ?>
+                      </td>
+                      <td class="py-1 px-2">
+                        <form method="POST" action="../updatePaymentStatus.php" class="flex space-x-1">
+                          <input type="hidden" name="payment_id" value="<?= $payment['payment_id'] ?>">
+                          <select name="status" class="border border-gray-300 rounded px-1 text-sm">
+                            <option value="Confirmed" <?= $payment['status']=='Confirmed'?'selected':'' ?>>Confirmed</option>
+                            <option value="Ongoing" <?= $payment['status']=='Ongoing'?'selected':'' ?>>Ongoing</option>
+                            <option value="Late" <?= $payment['status']=='Late'?'selected':'' ?>>Late</option>
+                          </select>
+                          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-2 rounded text-sm">Update</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       <?php endforeach; ?>
     <?php else: ?>
@@ -406,6 +467,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <?php endif; ?>
   </div>
 </section>
+
 
   <!-- Maintenance Requests -->
   <section class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl">
