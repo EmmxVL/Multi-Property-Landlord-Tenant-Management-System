@@ -1,32 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Supabase Test</title>
-</head>
-<body>
-  <h1>Testing Supabase Connection...</h1>
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-  <!-- Supabase JS SDK -->
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script>
-    // ✅ Replace with your real project details
-    const supabaseUrl = 'https://twclndmhuifqjqmgpyfs.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Y2xuZG1odWlmcWpxbWdweWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NDkxNjcsImV4cCI6MjA3NzEyNTE2N30.lurgTA4D25yoyCioXCsb7J29Yppa9xa3BqjlnGIoFjg'; // found in Supabase → Settings → API
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+// === Include Database Class ===
+$dbPath = __DIR__ . "/PHP/dbConnect.php";
 
-    async function testConnection() {
-      const { data, error } = await supabase.from('user_tbl').select('*');
-      
-      if (error) {
-        console.error('Error:', error);
-        document.body.innerHTML += `<p style="color:red;">❌ Error: ${error.message}</p>`;
-      } else {
-        console.log('Data:', data);
-        document.body.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-      }
+if (file_exists($dbPath)) {
+    echo "🔍 Including: $dbPath<br>";
+    require_once $dbPath;
+    echo "✅ dbConnect.php loaded successfully<br><br>";
+} else {
+    die("❌ Error: dbConnect.php not found at $dbPath");
+}
+
+// === Test Supabase Connection ===
+try {
+    $db = new Database();
+    $table = "user_tbl";
+
+    echo "✅ File loaded, testing Supabase connection...<br>";
+    echo "🔍 Checking table: $table<br><br>";
+
+    $response = $db->select($table);
+
+    echo "HTTP Status: " . $response["status"] . "<br><br>";
+
+    if ($response["status"] == 200) {
+        echo "✅ Query successful!<br><br>";
+        echo "<pre>";
+        print_r($response["data"]);
+        echo "</pre>";
+    } else {
+        echo "⚠️ Error fetching data from $table (HTTP {$response["status"]})<br><br>";
+        echo "<pre>";
+        print_r($response["data"]);
+        echo "</pre>";
     }
 
-    testConnection();
-  </script>
-</body>
-</html>
+} catch (Throwable $e) {
+    echo "❌ Fatal Error: " . $e->getMessage();
+}
+?>
