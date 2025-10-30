@@ -31,7 +31,7 @@ $paymentManager = new PaymentManager($db);
 
 // ✅ Fetch landlord's properties, tenants & leases
 $properties = $propertyManager->getProperties();
-$tenants = $tenantManager->getTenants();
+$tenants = $tenantManager->getTenantsInfo();
 $leases = $leaseManager->getLeasesByLandlord($userId);
 
 

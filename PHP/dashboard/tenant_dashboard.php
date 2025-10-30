@@ -29,7 +29,37 @@ $payments = $paymentManager->getPaymentsByTenant($userId);
 $nextPayment = $paymentManager->getNextDuePayment($userId);
 
 // Fetch tenant info (optional for display)
-$stmt = $db->prepare("SELECT * FROM tenant_info WHERE user_id = :user_id");
+$stmt = $db->prepare("SELECT  u.full_name, 
+        u.phone_no,
+        t.email, 
+        t.birthdate, 
+        t.age, 
+        t.gender, 
+        t.id_type, 
+        t.id_number, 
+        t.id_photo, 
+        t.birth_certificate, 
+        t.tenant_photo, 
+        t.occupation, 
+        t.employer_name, 
+        t.monthly_income, 
+        t.proof_of_income, 
+        p.property_id, 
+        p.property_name,
+        un.unit_id, 
+        un.unit_name,
+        l.lease_start_date, 
+        l.lease_end_date, 
+        t.monthly_rent, 
+        l.lease_status, 
+        t.emergency_name, 
+        t.emergency_contact, 
+        t.relationship
+    FROM tenant_info t
+    LEFT JOIN user_tbl u ON t.user_id = u.user_id
+    LEFT JOIN lease_tbl l ON t.user_id = l.user_id
+    LEFT JOIN unit_tbl un ON l.unit_id = un.unit_id
+    LEFT JOIN property_tbl p ON un.property_id = p.property_id WHERE t.user_id = :user_id");
 $stmt->execute(['user_id' => $userId]);
 $tenantInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -372,7 +402,7 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
                 <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
                 <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
                 <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
-                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['contact_number']); ?></p>
+                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
                 <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
                 <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
                 <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>

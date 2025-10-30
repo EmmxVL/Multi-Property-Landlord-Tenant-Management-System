@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         <div>
             <label>Contact Number</label>
-            <input type="text" name="contact_number" value="<?= htmlspecialchars($tenantInfo['contact_number'] ?? '') ?>" class="w-full border p-2 rounded">
+            <input type="text" name="phone_no" value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11">
         </div>
 
         <div>
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         <!-- Emergency Contact -->
         <div>
             <label>Emergency Contact Name</label>
-            <input type="text" name="emergency_name" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>" class="w-full border p-2 rounded">
+            <input type="text" name="emergency_name" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>" class="w-full border p-2 rounded" >
         </div>
 
         <div>
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         <div>
             <label>Emergency Contact Number</label>
-            <input type="text" name="emergency_contact" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" class="w-full border p-2 rounded">
+            <input type="text" name="emergency_contact" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11">
         </div>
 
         <!-- File Uploads with Delete Button -->
