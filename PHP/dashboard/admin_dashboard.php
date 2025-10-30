@@ -600,5 +600,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         <?php endif; ?>
     </script>
+    <script>
+let currentDeleteId = null;
+
+function confirmDelete(userId, fullName) {
+  currentDeleteId = userId;
+  document.getElementById('deleteLandlordName').textContent = fullName;
+  const modal = document.getElementById('deleteModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById('deleteModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function submitDelete() {
+  if (!currentDeleteId) return;
+  const form = document.getElementById('deleteForm' + currentDeleteId);
+  if (form) form.submit();
+  closeDeleteModal();
+}
+</script>
     </body>
 </html>

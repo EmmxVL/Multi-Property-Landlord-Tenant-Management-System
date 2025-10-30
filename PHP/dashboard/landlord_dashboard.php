@@ -31,7 +31,7 @@ $paymentManager = new PaymentManager($db);
 
 // ✅ Fetch landlord's properties, tenants & leases
 $properties = $propertyManager->getProperties();
-$tenants = $tenantManager->getTenants();
+$tenants = $tenantManager->getTenantsInfo();
 $leases = $leaseManager->getLeasesByLandlord($userId);
 
 
@@ -490,6 +490,17 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
     <div class="space-y-4">
       <?php if (!empty($maintenanceRequests)): ?>
+        <?php
+$maintenanceRequests = $maintenanceRequests ?? []; // make sure it's an array
+?>
+
+<?php if (!empty($maintenanceRequests)): ?>
+    <?php foreach ($maintenanceRequests as $req): ?>
+        ...
+    <?php endforeach; ?>
+<?php else: ?>
+    <p class="text-slate-500 italic text-center">No maintenance requests found.</p>
+<?php endif; ?>
         <?php foreach ($maintenanceRequests as $req): ?>
           <div class="p-4 border border-orange-200 rounded-2xl hover:shadow-md transition-all duration-200">
             <div class="flex justify-between items-start">

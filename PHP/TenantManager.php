@@ -13,7 +13,7 @@ class TenantManager {
     }
 
     /* -------------------- READ -------------------- */
-    public function getTenants(): array {
+    public function getTenantsInfo(): array {
         try {
             $stmt = $this->db->prepare("
                 SELECT u.user_id, u.full_name, u.phone_no
@@ -62,6 +62,11 @@ class TenantManager {
                     ":id" => $tenantId,
                     ":landlord_id" => $this->landlordId
                 ]);
+                 if ($success && isset($_SESSION['user_id']) && $_SESSION['user_id'] == $tenantId) {
+            $_SESSION['full_name'] = $fullName;
+        }
+
+        return $success;
             }
         } catch (PDOException $e) {
             $_SESSION["error"] = "Error updating tenant: " . $e->getMessage();

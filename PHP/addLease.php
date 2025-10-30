@@ -25,7 +25,7 @@ $tenantManager = new TenantManager($db, $landlordId);
 $leaseManager  = new LeaseManager($db);
 
 // Fetch tenants belonging to this landlord (TenantManager handles landlord linking internally)
-$tenants = $tenantManager->getTenants();
+$tenants = $tenantManager->getTenantsInfo();
 
 // Fetch available units owned by landlord
 try {

@@ -1,4 +1,15 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// 👇 Start session safely
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once "../PHP/dbConnect.php";
+
 class LandlordManager {
     private PDO $db;
 
@@ -27,10 +38,9 @@ class LandlordManager {
     /* -------------------- UPDATE -------------------- */
     public function updateLandlord(int $userId, string $fullName, string $phone, ?string $password = null): bool {
         try {
-            // Normalize phone
             $phone = $this->normalizePhone($phone);
 
-            if ($password) {
+            if ($password && trim($password) !== "") {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $this->db->prepare("
                     UPDATE user_tbl 
@@ -66,7 +76,6 @@ class LandlordManager {
     /* -------------------- DELETE -------------------- */
     public function deleteLandlord(int $userId): bool {
         try {
-            // Remove landlord’s role and account
             $this->db->beginTransaction();
 
             $stmt = $this->db->prepare("DELETE FROM user_role_tbl WHERE user_id = :id");
@@ -96,4 +105,44 @@ class LandlordManager {
         return $phone;
     }
 }
+
+/* ==========================================================
+   🧩 ACTION HANDLER SECTION
+   Handles POST actions: update / delete
+   ========================================================== */
+
+$database = new Database();
+$db = $database->getConnection();
+$manager = new LandlordManager($db);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? null;
+    $userId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+
+    if ($action === 'delete' && $userId > 0) {
+        if ($manager->deleteLandlord($userId)) {
+            $_SESSION['admin_success'] = "Landlord deleted successfully!";
+        } else {
+            $_SESSION['admin_error'] = $_SESSION['admin_error'] ?? "Failed to delete landlord.";
+        }
+        header("Location: ../PHP/dashboard/admin_dashboard.php");
+        exit;
+    }
+
+    if ($action === 'update' && $userId > 0) {
+        $fullName = $_POST['full_name'] ?? '';
+        $phone = $_POST['phone'] ?? '';
+        $password = $_POST['password'] ?? null;
+
+        if ($manager->updateLandlord($userId, $fullName, $phone, $password)) {
+            $_SESSION['admin_success'] = "Landlord updated successfully!";
+        } else {
+            $_SESSION['admin_error'] = $_SESSION['admin_error'] ?? "Failed to update landlord.";
+        }
+        header("Location: ../PHP/dashboard/admin_dashboard.php");
+        exit;
+    }
+}
+
+
 ?>
