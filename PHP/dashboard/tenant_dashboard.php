@@ -13,12 +13,27 @@ require_once "../dbConnect.php";
 require_once "../leaseManager.php";
 require_once "../paymentManager.php";
 require_once "../propertyManager.php";
+require_once "../maintenanceManager.php";
 // Create DB connection
 $database = new Database();
 $db = $database->getConnection();
 
 // Initialize managers
 $userId = (int) $_SESSION["user_id"];
+
+$maintenanceManager = new MaintenanceManager($db);
+
+// Fetch maintenance requests for this tenant
+$requests = $maintenanceManager->getRequestsByTenant($userId);
+$maintenanceCount = count($requests);
+$pendingRequests = 0;
+
+foreach ($requests as $r) {
+    if ($r['maintenance_status'] === 'Ongoing') {
+        $pendingRequests++;
+    }
+}
+
 $leaseManager = new LeaseManager($db);
 $paymentManager = new PaymentManager($db);
 
@@ -55,7 +70,7 @@ $stmt = $db->prepare("SELECT  u.full_name,
         t.emergency_name, 
         t.emergency_contact, 
         t.relationship
-    FROM tenant_info t
+    FROM tenant_info_tbl t
     LEFT JOIN user_tbl u ON t.user_id = u.user_id
     LEFT JOIN lease_tbl l ON t.user_id = l.user_id
     LEFT JOIN unit_tbl un ON l.unit_id = un.unit_id
@@ -142,24 +157,40 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         </div>
     </div>
 
-    <!-- Maintenance Requests -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-slate-600 text-sm font-medium">Maintenance Requests</p>
-                <p class="text-3xl font-bold text-slate-800 mt-1"><?= $maintenanceCount ?? 0 ?></p>
-                <p class="text-xs text-orange-600 mt-1"><?= $pendingRequests ?? 0 ?> pending</p>
-            </div>
+<!-- Maintenance Requests -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-slate-600 text-sm font-medium">Maintenance Requests</p>
+            <p class="text-3xl font-bold text-slate-800 mt-1"><?= $maintenanceCount ?? 0 ?></p>
+            <p class="text-xs text-orange-600 mt-1"><?= $pendingRequests ?? 0 ?> pending</p>
+        </div>
+
+        <div class="flex flex-col items-center">
             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066
+                          c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572
+                          c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573
+                          c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065
+                          c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066
+                          c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572
+                          c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573
+                          c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
+
+            <!-- 🔗 Button to go to maintenance page -->
+            <a href="../tenantMaintenance.php"
+               class="mt-3 text-sm font-medium text-orange-600 hover:underline">
+               View Requests
+            </a>
         </div>
     </div>
+</div>
 
     <!-- Lease Expiration -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
