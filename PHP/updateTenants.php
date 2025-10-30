@@ -14,7 +14,7 @@ $db = (new Database())->getConnection();
 $tenantManager = new TenantManager($db, $userId);
 
 $id = (int)($_GET["id"] ?? 0);
-$tenants = $tenantManager->getTenants();
+$tenants = $tenantManager->getTenantsInfo();
 $tenant = null;
 
 foreach ($tenants as $t) {

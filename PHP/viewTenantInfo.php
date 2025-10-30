@@ -41,7 +41,7 @@ $stmt = $db->prepare("SELECT
             t.emergency_contact, 
             t.relationship
                FROM user_tbl u
-        LEFT JOIN tenant_info t ON u.user_id = t.user_id
+        LEFT JOIN tenant_info_tbl t ON u.user_id = t.user_id
         LEFT JOIN lease_tbl l ON u.user_id = l.user_id
         LEFT JOIN unit_tbl un ON l.unit_id = un.unit_id
         LEFT JOIN property_tbl p ON un.property_id = p.property_id

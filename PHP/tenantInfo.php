@@ -26,7 +26,7 @@ if (isset($_GET['delete_file'])) {
     }
 
     // Update database
-    $stmt = $db->prepare("UPDATE tenant_info SET $fileField = NULL WHERE user_id = :user_id");
+    $stmt = $db->prepare("UPDATE tenant_info_tbl SET $fileField = NULL WHERE user_id = :user_id");
     $stmt->execute(['user_id' => $userId]);
 
     // Refresh tenant info
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         <div>
             <label>Contact Number</label>
-            <input type="text" name="phone_no" value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11">
+            <input type="text" name="phone_no" value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11"   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,11);">
         </div>
 
         <div>
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         <div>
             <label>Emergency Contact Number</label>
-            <input type="text" name="emergency_contact" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11">
+            <input type="text" name="emergency_contact" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11"  oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,11);">
         </div>
 
         <!-- File Uploads with Delete Button -->

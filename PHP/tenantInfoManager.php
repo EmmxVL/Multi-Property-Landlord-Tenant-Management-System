@@ -57,7 +57,7 @@ class TenantInfoManager {
             $age = $this->calculateAge($data['birthdate']);
 
             $stmt = $this->db->prepare("
-                INSERT INTO tenant_info (
+                INSERT INTO tenant_info_tbl (
                     user_id, full_name, birthdate, age, gender, phone_no, email,
                     id_type, id_number, id_photo, birth_certificate, tenant_photo,
                     occupation, employer_name, monthly_income, proof_of_income,
@@ -137,7 +137,7 @@ class TenantInfoManager {
                 t.emergency_contact, 
                 t.relationship
             FROM user_tbl u
-            LEFT JOIN tenant_info t ON u.user_id = t.user_id
+            LEFT JOIN tenant_info_tbl t ON u.user_id = t.user_id
             LEFT JOIN lease_tbl l ON u.user_id = l.user_id
             LEFT JOIN unit_tbl un ON l.unit_id = un.unit_id
             LEFT JOIN property_tbl p ON un.property_id = p.property_id
@@ -179,7 +179,7 @@ class TenantInfoManager {
 
             // 2️⃣ Update tenant_info
             $stmtTenant = $this->db->prepare("
-                UPDATE tenant_info 
+                UPDATE tenant_info_tbl
                 SET
                     birthdate = :birthdate,
                     age = :age,
@@ -270,7 +270,7 @@ class TenantInfoManager {
     ------------------------------------------------------------ */
     public function deleteTenantInfo(int $userId): bool {
         try {
-            $stmt = $this->db->prepare("DELETE FROM tenant_info WHERE user_id = :user_id");
+            $stmt = $this->db->prepare("DELETE FROM tenant_info_tbl WHERE user_id = :user_id");
             $stmt->execute([':user_id' => $userId]);
             return true;
         } catch (PDOException $e) {
