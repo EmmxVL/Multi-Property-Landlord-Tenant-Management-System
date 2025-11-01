@@ -77,9 +77,7 @@ unset($_SESSION['login_error']);
 
         <!-- Divider -->
         <div class="flex items-center my-6">
-          <div class="flex-grow border-t border-slate-300"></div>
-          <span class="mx-3 text-slate-400 text-sm">or</span>
-          <div class="flex-grow border-t border-slate-300"></div>
+          
         </div>
       </div>
     </div>
