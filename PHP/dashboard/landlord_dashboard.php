@@ -17,6 +17,8 @@ require_once "../propertyManager.php";
 require_once "../tenantManager.php";
 require_once "../leaseManager.php";
 require_once "../paymentManager.php"; // new: for payment data
+require_once "../messageManager.php";
+
 
 // ✅ Create DB connection (PDO)
 $database = new Database();
@@ -28,11 +30,14 @@ $propertyManager = new PropertyManager($db, $userId);
 $tenantManager = new TenantManager($db, $userId);
 $leaseManager = new LeaseManager($db);
 $paymentManager = new PaymentManager($db);
+$messageManager = new MessageManager($db);
 
 // ✅ Fetch landlord's properties, tenants & leases
 $properties = $propertyManager->getProperties();
 $tenants = $tenantManager->getTenantsinfo();
 $leases = $leaseManager->getLeasesByLandlord($userId);
+$recentMessages = $messageManager->getRecentMessagesByLandlord($userId);
+
 
 
 // Fetch payments for each lease
@@ -549,6 +554,74 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 </div>
       
 </section>
+
+<!-- Messages Section -->
+<section class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+      <div class="p-2 bg-indigo-100 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-6.219-8.56M21 12l-4.35 4.35" />
+        </svg>
+      </div>
+      Messages
+    </h3>
+
+    <a href="../sendMessage.php"
+       class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2">
+      Manage
+    </a>
+  </div>
+
+  <div class="space-y-4">
+  <?php if (!empty($recentMessages)): ?>
+    <?php foreach ($recentMessages as $msg): ?>
+      <?php
+        // Prevent undefined index warnings
+        $senderName = $msg['sender_name'] ?? 'Landlord';
+        $message = $msg['message'] ?? '(No message)';
+        $dateSent = $msg['date_sent'] ?? 'N/A';
+        $status = $msg['message_status'] ?? 'Pending';
+      ?>
+      <div class="p-4 border border-indigo-200 rounded-2xl hover:shadow-md transition-all duration-200">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-semibold text-slate-800 text-base mb-1">
+              💬 <?= htmlspecialchars($senderName) ?>
+            </h4>
+            <p class="text-sm text-slate-600 mb-1">
+              <?= htmlspecialchars($message) ?>
+            </p>
+            <p class="text-xs text-slate-500">
+              Date: <?= htmlspecialchars($dateSent) ?>
+            </p>
+          </div>
+          <span class="px-3 py-1 text-xs rounded-full font-medium
+            <?= $status === 'Pending'
+              ? 'bg-amber-100 text-amber-700'
+              : ($status === 'Completed'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-slate-100 text-slate-600') ?>">
+            <?= htmlspecialchars($status) ?>
+          </span>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <div class="text-center py-12">
+      <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-6.219-8.56M21 12l-4.35 4.35" />
+        </svg>
+      </div>
+      <p class="text-slate-500 font-medium text-lg mb-2">No messages yet</p>
+      <p class="text-slate-400 text-sm">Messages between you and tenants will appear here.</p>
+    </div>
+  <?php endif; ?>
+</div>
+
 
 </main>
 

@@ -82,6 +82,28 @@ $tenantInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 $tenantSuccess = $_SESSION['tenant_success'] ?? null;
 $tenantError   = $_SESSION['tenant_error'] ?? null;
 unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
+
+// ✅ Fetch tenant messages
+$messageQuery = "SELECT message_id, unit_id, user_id, message, date_sent, message_status 
+                 FROM message_tbl 
+                 WHERE user_id = :user_id 
+                 ORDER BY date_sent DESC 
+                 LIMIT 3";
+$msgStmt = $db->prepare($messageQuery);
+$msgStmt->bindParam(":user_id", $userId);
+$msgStmt->execute();
+$messages = $msgStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ✅ Fetch all messages (for modal)
+$allMsgQuery = "SELECT message_id, unit_id, user_id, message, date_sent, message_status 
+                FROM message_tbl 
+                WHERE user_id = :user_id 
+                ORDER BY date_sent DESC";
+$allMsgStmt = $db->prepare($allMsgQuery);
+$allMsgStmt->bindParam(":user_id", $userId);
+$allMsgStmt->execute();
+$allMessages = $allMsgStmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -424,6 +446,40 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
             <a href="../makePayment.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Make a Payment</a>
         </div>
     <?php endif; ?>
+ 
+   
+        <!-- Tenant Messages -->
+    <div class="bg-white shadow-md rounded-xl p-5">
+    <h2 class="text-xl font-semibold mb-3">📩 Messages</h2>
+    <?php
+        $stmt = $db->prepare("
+        SELECT message, date_sent 
+        FROM message_tbl 
+        INNER JOIN lease_tbl l ON message_tbl.unit_id = l.unit_id 
+        WHERE l.user_id = :tenant_id 
+        ORDER BY date_sent DESC LIMIT 3
+        ");
+        $stmt->execute(['tenant_id' => $_SESSION['user_id']]);
+        $recentMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    ?>
+    <?php if (empty($recentMessages)): ?>
+        <p class="text-gray-500">No messages yet.</p>
+    <?php else: ?>
+        <ul class="divide-y">
+        <?php foreach ($recentMessages as $msg): ?>
+            <li class="py-2">
+            <p class="font-medium"><?= htmlspecialchars($msg['message']) ?></p>
+            <p class="text-sm text-gray-500">📅 <?= htmlspecialchars($msg['date_sent']) ?></p>
+            </li>
+        <?php endforeach; ?>
+        </ul>
+        <div class="text-right mt-3">
+        <a href="../tenantMessages.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            View all messages →
+        </a>
+        </div>
+    <?php endif; ?>
+    </div>
 
     <!-- Tenant Info -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
@@ -449,6 +505,26 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         </div>
     </div>
 </section>
+    <!-- ✅ Messages Modal -->
+<div id="messageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+        <h3 class="text-xl font-semibold mb-4">All Messages</h3>
+        <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg">&times;</button>
+        <div class="max-h-96 overflow-y-auto divide-y divide-gray-200">
+            <?php foreach ($allMessages as $msg): ?>
+                <div class="py-3">
+                    <div class="flex justify-between">
+                        <p class="text-gray-700"><?= htmlspecialchars($msg['message']) ?></p>
+                        <span class="text-sm text-gray-500"><?= date("M d, Y", strtotime($msg['date_sent'])) ?></span>
+                    </div>
+                    <p class="text-xs <?= $msg['message_status'] === 'Unread' ? 'text-red-500' : 'text-green-500' ?>">
+                        <?= htmlspecialchars($msg['message_status']) ?>
+                    </p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
 
     
 </main>
@@ -490,6 +566,20 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
                 confirmButtonText: 'Okay' 
             });
         <?php endif; ?>
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const viewBtn = document.getElementById("viewAllBtn");
+            const modal = document.getElementById("messageModal");
+            const closeBtn = document.getElementById("closeModal");
+
+            if (viewBtn) {
+                viewBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+            }
+        });
     </script>
 
 </body>
