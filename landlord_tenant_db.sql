@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 30, 2025 at 03:00 PM
+-- Generation Time: Nov 02, 2025 at 03:01 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -251,8 +251,8 @@ CREATE TABLE `lease_tbl` (
 
 INSERT INTO `lease_tbl` (`lease_id`, `lease_start_date`, `lease_end_date`, `balance`, `unit_id`, `user_id`, `lease_status`) VALUES
 (13, '2026-10-26', '2027-10-26', 9900000.00, 13, 38, 'Active'),
-(15, '2025-10-29', '2025-11-05', 0.00, 18, 50, 'Active'),
-(16, '2025-11-01', '2025-12-01', 10000.00, 17, 50, 'Active');
+(18, '2026-10-26', '2026-10-26', 800000.00, 23, 54, 'Active'),
+(19, '2026-10-26', '2027-10-26', 100000.00, 24, 55, 'Active');
 
 -- --------------------------------------------------------
 
@@ -281,9 +281,28 @@ CREATE TABLE `message_tbl` (
   `unit_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `message` varchar(300) DEFAULT NULL,
-  `date_sent` date DEFAULT NULL,
-  `message_status` enum('Pending','Completed','Cancelled') DEFAULT 'Pending'
+  `date_sent` datetime DEFAULT current_timestamp(),
+  `message_status` enum('Pending','Completed','Cancelled') DEFAULT 'Pending',
+  `send_time` datetime DEFAULT NULL,
+  `delivered_time` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `message_tbl`
+--
+
+INSERT INTO `message_tbl` (`message_id`, `unit_id`, `user_id`, `message`, `date_sent`, `message_status`, `send_time`, `delivered_time`) VALUES
+(9, 13, 38, 'Hello', '2025-11-02 20:33:47', 'Pending', NULL, NULL),
+(11, 13, 38, 'check yo balls', '2025-11-02 21:06:10', 'Pending', NULL, NULL),
+(12, 23, 54, 'check yo balls', '2025-11-02 21:06:10', 'Pending', NULL, NULL),
+(13, 24, 55, 'check yo balls', '2025-11-02 21:06:10', 'Pending', NULL, NULL),
+(14, 13, 38, 'check yo balls', '2025-11-02 21:07:10', 'Pending', NULL, NULL),
+(15, 23, 54, 'check yo balls', '2025-11-02 21:07:10', 'Pending', NULL, NULL),
+(16, 24, 55, 'check yo balls', '2025-11-02 21:07:10', 'Pending', NULL, NULL),
+(17, 13, 38, 'check yo balls', '2025-11-02 21:07:31', 'Pending', NULL, NULL),
+(18, 23, 54, 'check yo balls', '2025-11-02 21:07:31', 'Pending', NULL, NULL),
+(19, 24, 55, 'check yo balls', '2025-11-02 21:07:31', 'Pending', NULL, NULL),
+(20, 23, 54, 'sybau🤫', '2025-11-02 21:22:19', 'Pending', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -323,7 +342,7 @@ CREATE TABLE `payment_tbl` (
 
 INSERT INTO `payment_tbl` (`payment_id`, `lease_id`, `user_id`, `unit_id`, `amount`, `payment_date`, `receipt_upload`, `payment_status`) VALUES
 (31, 13, 38, 13, 100000.00, '2025-10-29', '1761736240_money.jpeg', 'Confirmed'),
-(34, 15, 50, 18, 50.00, '2025-10-29', '1761754263_Screenshot 2025-10-28 114148.png', 'Confirmed');
+(35, 18, 54, 23, 200000.00, '2025-11-02', '1762091475_PBI_LuceroRalph.png', 'Ongoing');
 
 -- --------------------------------------------------------
 
@@ -344,8 +363,7 @@ CREATE TABLE `property_tbl` (
 
 INSERT INTO `property_tbl` (`property_id`, `user_id`, `location`, `property_name`) VALUES
 (14, 37, 'Sabang', 'GDR-1'),
-(16, 43, 'Manila', 'Lemon Tree House'),
-(18, 43, 'Boracay', 'Lemon Beach House');
+(20, 37, 'Sabang', 'GDR-2');
 
 -- --------------------------------------------------------
 
@@ -424,11 +442,8 @@ CREATE TABLE `unit_tbl` (
 
 INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `unit_name`, `rent`) VALUES
 (13, 37, 14, 'A-1', 100000),
-(15, 43, 16, 'L1', 100),
-(16, 43, 16, 'L2', 100),
-(17, 43, 16, 'L3', 100),
-(18, 43, 16, 'L4', 100),
-(21, 43, 18, 'B1', 1000);
+(23, 37, 20, 'A-1', 100000),
+(24, 37, 20, 'A-2', 1000000);
 
 -- --------------------------------------------------------
 
@@ -447,12 +462,13 @@ CREATE TABLE `user_role_tbl` (
 
 INSERT INTO `user_role_tbl` (`role_id`, `user_id`) VALUES
 (1, 37),
-(1, 42),
-(1, 43),
+(1, 56),
 (2, 38),
 (2, 40),
 (2, 41),
 (2, 50),
+(2, 54),
+(2, 55),
 (3, 8);
 
 -- --------------------------------------------------------
@@ -479,9 +495,10 @@ INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`, `landlor
 (38, 'emm', '$2y$10$.LrtDjynRMXR4PwHP1NLoOiGTWROvB.14tXZkTfs/ZZO03TvHgrBO', '09936467748', 37),
 (40, 'laurel', '$2y$10$Xe9AAN2hS7lnM34faBSas.XkqC0YOPC9ay/Zku437/hvrVGH70S2W', '09333444555', 39),
 (41, 'lele', '$2y$10$Oh6c8GoBOZjMp.vFfhd.OeCoJus7ESxo.ursG2zN5P0cr6V05GOLK', '09444555666', 39),
-(42, 'Sean Martin', '$2y$10$vD9h5QBn4.V.P3GiUdrWoONBxTfwXzUGDUcg4DwZd1YVa3LG3rsBy', '09065816503', NULL),
-(43, 'Filemon Mendoza', '$2y$10$ZkGaMWkUdSMpVFYkrpd.gOduHUk63TSQ8i.65IG2Siv/MEIk9FrbK', '09166805211', NULL),
-(50, 'Ryan Gosling', '$2y$10$2LPK2xt67Lg7o6ypQmVd3.LkOq444QbRMi1beUcRM4EtDJTgpHATW', '84878787872', 43);
+(50, 'Ryan Gosling', '$2y$10$2LPK2xt67Lg7o6ypQmVd3.LkOq444QbRMi1beUcRM4EtDJTgpHATW', '84878787872', 43),
+(54, 'Filemon Laurel', '$2y$10$Q9HZqQOIND8HrRY1Aj8/.uaR76jsxjAi6xPQ231CMGcyEiVyip7ne', '09166805211', 37),
+(55, 'Sean Martin', '$2y$10$hmPWhYGp82CU0rtTO9SUrOTw2Nngvcn0OXV8FU95ilhtSs5r0/Wh6', '09065816503', 37),
+(56, 'martin', '$2y$10$NkOMdsn5/rHFduhA5i9SsejDwrKpOJxzG.X4JLxF8L448xnSZOc96', '09555666777', NULL);
 
 --
 -- Indexes for dumped tables
@@ -575,19 +592,19 @@ ALTER TABLE `user_tbl`
 -- AUTO_INCREMENT for table `lease_tbl`
 --
 ALTER TABLE `lease_tbl`
-  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `maintenance_tbl`
 --
 ALTER TABLE `maintenance_tbl`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `message_tbl`
 --
 ALTER TABLE `message_tbl`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `otp_tbl`
@@ -599,13 +616,13 @@ ALTER TABLE `otp_tbl`
 -- AUTO_INCREMENT for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `property_tbl`
 --
 ALTER TABLE `property_tbl`
-  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `role_tbl`
@@ -617,13 +634,13 @@ ALTER TABLE `role_tbl`
 -- AUTO_INCREMENT for table `unit_tbl`
 --
 ALTER TABLE `unit_tbl`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `user_tbl`
 --
 ALTER TABLE `user_tbl`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- Constraints for dumped tables
