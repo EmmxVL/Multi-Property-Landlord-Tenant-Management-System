@@ -320,8 +320,6 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
             </div>
         <?php endif; ?>
     </div>
-
-    
 <!-- Tenant Info -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
         <h2 class="text-2xl font-semibold mb-4">My Information</h2>

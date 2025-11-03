@@ -78,8 +78,8 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="../../assets/styles.css">
-   <script src="../assets/script.js" defer></script> 
-    <script src="../assets/landlord.js" defer></script>
+   <script src="../../assets/script.js" defer></script> 
+    <script src="../../assets/landlord.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
     <div id="notification-container"></div>

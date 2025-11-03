@@ -3,20 +3,6 @@ session_start();
 $loginError = $_SESSION['login_error'] ?? null;
 unset($_SESSION['login_error']); 
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/styles.css">
-    <script src="assets/script.js" defer></script>
-</head>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,16 +13,60 @@ unset($_SESSION['login_error']);
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="icon" type="image/png" href="photos/logo.png">
   <style>
-    body {
-      background: linear-gradient(135deg, #bfdbfe 0%, #e0f2fe 100%);
+  body {
+    --x: 50%;
+    --y: 50%;
+    background: radial-gradient(
+      circle at var(--x) var(--y),
+      #ffffff 0%,
+      #dbeafe 6%,
+      #1e3a8a 100%
+    );
+    background-attachment: fixed;
+    transition: background 0.2s ease-out;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+
+  @keyframes riseUp {
+    0% {
+      opacity: 0;
+      transform: translateY(40px) scale(0.98);
     }
-  </style>
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-rise {
+    animation: riseUp 0.6s ease-out 0.2s forwards;
+  }
+</style>
 </head>
+<script>
+   document.addEventListener("DOMContentLoaded", () => {
+    const card = document.querySelector(".animate-rise");
+    if (card) {
+      card.style.animation = "none";
+      void card.offsetWidth; // Trigger reflow
+      card.style.animation = null;
+    }
+  });
+  document.addEventListener("mousemove", (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.body.style.setProperty("--x", `${x}%`);
+    document.body.style.setProperty("--y", `${y}%`);
+  });
+</script>
+
+  </script>
 <body class="font-sans text-slate-800 min-h-screen flex flex-col">
   <!-- Login Section -->
   <main class="flex flex-grow items-center justify-center py-12 px-4">
     <div class="w-full max-w-md">
-      <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl">
+      <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl animate-rise">
         <!-- Logo -->
         <div class="flex justify-center mb-5">
           <img src="photos/logo.png" alt="Unitly Logo" class="h-20 w-20 rounded-full shadow-md ring-4 ring-blue-100">
@@ -82,10 +112,6 @@ unset($_SESSION['login_error']);
       </div>
     </div>
   </main>
-
-  <!-- Footer -->
-  <?php include 'assets/footer.php'; ?>
-
   <!-- SweetAlert for Login Error -->
   <script>
   <?php if (!empty($loginError)): ?>

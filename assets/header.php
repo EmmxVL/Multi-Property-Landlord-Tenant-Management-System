@@ -1,3 +1,9 @@
+<?php
+$baseURL = dirname($_SERVER['SCRIPT_NAME']) === '../../'
+    ? '../' 
+    : (strpos($_SERVER['SCRIPT_NAME'], '/dashboard/') !== false ? '../../' : '../');
+?>
+
 <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -19,7 +25,7 @@
                            $initials = ($names[0][0] ?? '') . ($names[1][0] ?? ''); echo htmlspecialchars(strtoupper($initials) ?: 'A');
                        ?>
                     </div>
-                     <a href="../logout.php" title="Logout" class="p-2 text-slate-600 hover:text-red-600">
+                 <a href="<?= $baseURL ?>logout.php" title="Logout">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                      </a>
                 </div>
