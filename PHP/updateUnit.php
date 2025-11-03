@@ -49,44 +49,76 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_unit"])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Update Unit</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Update Unit | Unitly</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/script.js" defer></script>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
 
-    <!-- HEADER -->
-   <?php include '../assets/header.php'; ?>
-    <main class="flex-grow flex justify-center items-center py-12">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6 text-center">✏️ Update Unit</h1>
+<?php include '../assets/header.php'; ?>
 
-        <?php if (!empty($_SESSION["error"])): ?>
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                <?= htmlspecialchars($_SESSION["error"]) ?>
-            </div>
-            <?php unset($_SESSION["error"]); ?>
-        <?php endif; ?>
+<body class="bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 min-h-screen font-sans flex flex-col">
 
-        <form method="POST" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Unit Name</label>
-                <input type="text" name="unit_name" value="<?= htmlspecialchars($unit['unit_name']) ?>" class="w-full border p-2 rounded" required>
-            </div>
+  <main class="flex-grow flex items-center justify-center py-12 px-4">
+    <div class="bg-white/80 backdrop-blur-md w-full max-w-md rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-2xl">
+      
+      <!-- Title -->
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7 0h14" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-extrabold text-blue-900">Update Unit</h1>
+        <p class="text-slate-500 text-sm mt-1">Edit and save your unit details below.</p>
+      </div>
 
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Rent Amount</label>
-                <input type="number" name="rent" value="<?= htmlspecialchars($unit['rent']) ?>" class="w-full border p-2 rounded" required>
-            </div>
+      <!-- Alert -->
+      <?php if (!empty($_SESSION["error"])): ?>
+        <script>
+          Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: <?= json_encode($_SESSION["error"]) ?>,
+            confirmButtonColor: "#2563eb"
+          });
+        </script>
+        <?php unset($_SESSION["error"]); ?>
+      <?php endif; ?>
 
-            <div class="flex justify-between items-center mt-6">
-                <a href="manageUnit.php?property_id=<?= $propertyId ?>" class="text-blue-600 hover:underline">← Back</a>
-                <button type="submit" name="update_unit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">💾 Save Changes</button>
-            </div>
-        </form>
+      <!-- Form -->
+      <form method="POST" class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Unit Name</label>
+          <input type="text" name="unit_name" value="<?= htmlspecialchars($unit['unit_name']) ?>"
+                 class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                 required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Rent Amount</label>
+          <input type="number" name="rent" value="<?= htmlspecialchars($unit['rent']) ?>"
+                 class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                 required>
+        </div>
+
+        <div class="flex justify-between items-center pt-4">
+          <a href="manageUnit.php?property_id=<?= $propertyId ?>"
+             class="text-sm text-blue-600 hover:text-blue-800 hover:underline transition">
+            ← Back to Units
+          </a>
+          <button type="submit" name="update_unit"
+                  class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+            💾 Save Changes
+          </button>
+        </div>
+      </form>
     </div>
-        </main>
-    <!-- FOOTER -->
-    <?php include '../assets/footer.php'; ?>
+  </main>
+
+  <?php include '../assets/footer.php'; ?>
+
 </body>
 </html>

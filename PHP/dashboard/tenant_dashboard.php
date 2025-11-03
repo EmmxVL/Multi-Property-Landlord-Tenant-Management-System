@@ -114,12 +114,12 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         ?>
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-slate-600 text-sm font-medium">Apartment Name</p>
-                <p class="text-2xl font-bold text-slate-800 mt-1">
-                    <?= htmlspecialchars($currentLease['unit_name']) ?>
+                <p class="text-slate-600 text-sm font-medium">Apartment </p>
+                <p class="text-2xl font-semibold text-slate-800 mt-1">
+                    <?= htmlspecialchars($currentLease['property_name']) ?>
                 </p>
                 <p class="text-xs text-slate-600 mt-1">
-                    <?= htmlspecialchars($currentLease['location']) ?>
+                    Unit Name: <?= htmlspecialchars($currentLease['unit_name']) ?>
                 </p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -269,80 +269,91 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
     <?php endif; ?>
 
 
-    <!-- Active Leases -->
-    <div class="bg-white rounded-xl shadow-sm p-8 border border-slate-200 property-card">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <p class="text-slate-600 text-sm font-medium">Active Leases</p>
-                <p class="text-3xl font-bold text-slate-800 mt-1"><?= count($leases) ?></p>
-                <p class="text-xs text-green-600 mt-1">Properties rented</p>
-            </div>
+    <!-- Dashboard Overview -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
 
-            <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                </svg>
-            </div>
+  <!-- Active Leases -->
+  <div class="bg-white rounded-xl shadow-sm p-8 border border-slate-200 flex flex-col justify-between h-full">
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-slate-600 text-sm font-medium">Active Leases</p>
+          <p class="text-3xl font-bold text-slate-800 mt-1"><?= count($leases) ?></p>
+          <p class="text-xs text-green-600 mt-1">Properties rented</p>
         </div>
 
-        <?php if ($leases): ?>
-            <div class="space-y-3">
-                <?php foreach (array_slice($leases, 0, 3) as $lease): ?>
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div>
-                            <p class="font-semibold text-slate-800 text-sm">
-                                <?= htmlspecialchars($lease['unit_name']) ?>
-                            </p>
-                            <p class="text-xs text-slate-600">
-                                ₱<?= number_format((float)$lease['balance'], 2) ?> balance
-                            </p>
-                        </div>
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                            <?= $lease['lease_status'] === 'Active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800' ?>">
-                            <?= htmlspecialchars($lease['lease_status']) ?>
-                        </span>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if (count($leases) > 3): ?>
-                    <div class="text-center pt-2">
-                        <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            View all <?= count($leases) ?> leases
-                        </button>
-                    </div>
-                <?php endif; ?>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-4">
-                <p class="text-slate-500 italic text-sm">No active leases found</p>
-            </div>
-        <?php endif; ?>
-    </div>
-<!-- Tenant Info -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
-        <h2 class="text-2xl font-semibold mb-4">My Information</h2>
-        <?php if ($tenantInfo): ?>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
-                <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
-                <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
-                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
-                <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
-                <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
-                <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
-            </div>
-        <?php else: ?>
-            <p class="text-gray-600">No information found yet.</p>
-        <?php endif; ?>
-        <div class="flex justify-end mt-6">
-            <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
-                View / Edit My Information
-            </a>
+        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+          <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
         </div>
+      </div>
+
+      <?php if ($leases): ?>
+        <div class="space-y-3">
+          <?php foreach (array_slice($leases, 0, 3) as $lease): ?>
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div>
+                <p class="font-semibold text-slate-800 text-sm">
+                  <?= htmlspecialchars($lease['unit_name']) ?>
+                </p>
+                <p class="text-xs text-slate-600">
+                  ₱<?= number_format((float)$lease['balance'], 2) ?> balance
+                </p>
+              </div>
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                <?= $lease['lease_status'] === 'Active' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800' ?>">
+                <?= htmlspecialchars($lease['lease_status']) ?>
+              </span>
+            </div>
+          <?php endforeach; ?>
+
+          <?php if (count($leases) > 3): ?>
+            <div class="text-center pt-2">
+              <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                View all <?= count($leases) ?> leases
+              </button>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php else: ?>
+        <div class="text-center py-4">
+          <p class="text-slate-500 italic text-sm">No active leases found</p>
+        </div>
+      <?php endif; ?>
     </div>
+  </div>
+
+  <!-- Tenant Info -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col justify-between h-full">
+    <div>
+      <h2 class="text-2xl font-semibold mb-4">My Information</h2>
+      <?php if ($tenantInfo): ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
+          <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
+          <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
+          <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
+          <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
+          <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
+          <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
+          <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
+        </div>
+      <?php else: ?>
+        <p class="text-slate-500 italic text-sm">No information found yet.</p>
+      <?php endif; ?>
+    </div>
+
+    <div class="flex justify-end mt-6">
+      <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+        View / Edit My Information
+      </a>
+    </div>
+  </div>
+
+</div>
 </div>
 
             <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
