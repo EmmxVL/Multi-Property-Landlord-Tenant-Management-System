@@ -76,10 +76,14 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <title>Manage Tenants</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles.css">
+   <script src="../assets/script.js" defer></script> 
+    <script src="../assets/landlord.js" defer></script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
-<?php include '../assets/header.php'; ?>
+    <div id="notification-container"></div>
+    <?php include '../assets/header.php'; ?>
 
 <main class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-10">
   <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
@@ -99,7 +103,7 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       <div>
         <label for="phone_no" class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-        <input type="text" id="phone_no" name="phone_no"
+        <input type="text" id="phone_no" name="phone_no" maxlength="11"
                class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                placeholder="e.g., 09123456789" required>
       </div>

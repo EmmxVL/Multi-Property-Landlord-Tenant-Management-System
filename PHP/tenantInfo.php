@@ -64,122 +64,138 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <head>
 <meta charset="UTF-8">
 <title>Tenant Info</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles.css">
+   <script src="../assets/script.js" defer></script> 
+    <script src="../assets/landlord.js" defer></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-6 font-sans">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
+    <div id="notification-container"></div>
+    <?php include '../assets/header.php'; ?>
 
-<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-    <h1 class="text-2xl font-bold mb-6">My Information</h1>
+   <main class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen py-10">
+  <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 p-10">
+    
+    <h1 class="text-3xl font-bold text-slate-800 mb-8 flex items-center gap-2">
+      👤 <span>My Information</span>
+    </h1>
 
     <?php if($success): ?>
-        <script>
-            Swal.fire({icon:'success', title:'Success', text:<?= json_encode($success) ?>});
-        </script>
+      <script>
+        Swal.fire({icon:'success', title:'Success', text:<?= json_encode($success) ?>});
+      </script>
     <?php elseif($error): ?>
-        <script>
-            Swal.fire({icon:'error', title:'Error', text:<?= json_encode($error) ?>});
-        </script>
+      <script>
+        Swal.fire({icon:'error', title:'Error', text:<?= json_encode($error) ?>});
+      </script>
     <?php endif; ?>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
-
-        <!-- Basic Info -->
+    <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- LEFT COLUMN -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Basic Information</h2>
         <div>
-            <label>Full Name</label>
-            <input type="text" name="full_name" value="<?= htmlspecialchars($tenantInfo['full_name'] ?? '') ?>" class="w-full border p-2 rounded">
+          <label class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
+          <input type="text" name="full_name" value="<?= htmlspecialchars($tenantInfo['full_name'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Birthdate</label>
+          <input type="date" name="birthdate" value="<?= htmlspecialchars($tenantInfo['birthdate'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+          <select name="gender" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="">Select Gender</option>
+            <option value="Male" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Male') ? 'selected' : '' ?>>Male</option>
+            <option value="Female" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Female') ? 'selected' : '' ?>>Female</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
+          <input type="text" name="phone_no" maxlength="11"
+                 value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+          <input type="email" name="email" value="<?= htmlspecialchars($tenantInfo['email'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
+        <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Occupation Information</h2>
         <div>
-            <label>Birthdate</label>
-            <input type="date" name="birthdate" value="<?= htmlspecialchars($tenantInfo['birthdate'] ?? '') ?>" class="w-full border p-2 rounded">
+          <label class="block text-sm font-medium text-slate-600 mb-1">Occupation</label>
+          <input type="text" name="occupation" value="<?= htmlspecialchars($tenantInfo['occupation'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Employer Name</label>
+          <input type="text" name="employer_name" value="<?= htmlspecialchars($tenantInfo['employer_name'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Monthly Income</label>
+          <input type="number" step="0.01" name="monthly_income" value="<?= htmlspecialchars($tenantInfo['monthly_income'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Emergency Contact</h2>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Name</label>
+          <input type="text" name="emergency_name" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Relationship</label>
+          <input type="text" name="relationship" value="<?= htmlspecialchars($tenantInfo['relationship'] ?? '') ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
+          <input type="text" name="emergency_contact" maxlength="11"
+                 value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
         </div>
 
-        <div>
-            <label>Gender</label>
-            <select name="gender" class="w-full border p-2 rounded">
-                <option value="">Select Gender</option>
-                <option value="Male" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Male') ? 'selected' : '' ?>>Male</option>
-                <option value="Female" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Female') ? 'selected' : '' ?>>Female</option>
-            </select>
-        </div>
-
-        <div>
-            <label>Contact Number</label>
-            <input type="text" name="phone_no" value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11"   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,11);">
-        </div>
-
-        <div>
-            <label>Email</label>
-            <input type="email" name="email" value="<?= htmlspecialchars($tenantInfo['email'] ?? '') ?>" class="w-full border p-2 rounded">
-        </div>
-
-        <!-- Occupation Info -->
-        <div>
-            <label>Occupation</label>
-            <input type="text" name="occupation" value="<?= htmlspecialchars($tenantInfo['occupation'] ?? '') ?>" class="w-full border p-2 rounded">
-        </div>
-
-        <div>
-            <label>Employer Name</label>
-            <input type="text" name="employer_name" value="<?= htmlspecialchars($tenantInfo['employer_name'] ?? '') ?>" class="w-full border p-2 rounded">
-        </div>
-
-        <div>
-            <label>Monthly Income</label>
-            <input type="number" step="0.01" name="monthly_income" value="<?= htmlspecialchars($tenantInfo['monthly_income'] ?? '') ?>" class="w-full border p-2 rounded">
-        </div>
-
-        <!-- Emergency Contact -->
-        <div>
-            <label>Emergency Contact Name</label>
-            <input type="text" name="emergency_name" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>" class="w-full border p-2 rounded" >
-        </div>
-
-        <div>
-            <label>Relationship</label>
-            <input type="text" name="relationship" value="<?= htmlspecialchars($tenantInfo['relationship'] ?? '') ?>" class="w-full border p-2 rounded">
-        </div>
-
-        <div>
-            <label>Emergency Contact Number</label>
-            <input type="text" name="emergency_contact" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" class="w-full border p-2 rounded" maxlength="11"  oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,11);">
-        </div>
-
-        <!-- File Uploads with Delete Button -->
+        <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Documents</h2>
         <?php
-    $fileFields = [
-        'id_photo' => 'ID Photo',
-        'birth_certificate' => 'Birth Certificate',
-        'tenant_photo' => 'Tenant Photo',
-        'proof_of_income' => 'Proof of Income'
-    ];
-
-    foreach ($fileFields as $field => $label):
-    ?>
-        <div>
-            <label><?= $label ?></label>
+        $fileFields = [
+          'id_photo' => 'ID Photo',
+          'birth_certificate' => 'Birth Certificate',
+          'tenant_photo' => 'Tenant Photo',
+          'proof_of_income' => 'Proof of Income'
+        ];
+        foreach ($fileFields as $field => $label):
+        ?>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1"><?= $label ?></label>
             <?php if(!empty($tenantInfo[$field])): ?>
-                <div class="mb-2 flex items-center gap-2">
-                    <!-- Clickable image -->
-                    <a href="<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
-                        <img src="<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded">
-                    </a>
-                    <a href="?delete_file=<?= $field ?>" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">Delete</a>
-                </div>
+              <div class="mb-2 flex items-center gap-2">
+                <a href="<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
+                  <img src="<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded-lg shadow-sm hover:shadow-md transition">
+                </a>
+                <a href="?delete_file=<?= $field ?>" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Delete</a>
+              </div>
             <?php endif; ?>
-            <input type="file" name="<?= $field ?>" class="w-full">
-        </div>
-    <?php endforeach; ?>
+            <input type="file" name="<?= $field ?>" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+          </div>
+        <?php endforeach; ?>
+      </div>
 
-
-        <!-- Form Actions -->
-        <div class="flex justify-between mt-6">
-            <a href="dashboard/tenant_dashboard.php" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded">Back to Dashboard</a>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">Save Information</button>
-        </div>
+      <!-- BUTTONS -->
+      <div class="lg:col-span-2 flex justify-between mt-8">
+        <a href="dashboard/tenant_dashboard.php" class="bg-slate-500 hover:bg-slate-600 text-white px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+          ← Back to Dashboard
+        </a>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+          Save Information
+        </button>
+      </div>
     </form>
-</div>
+  </div>
+</main>
+<?php include '../assets/footer.php'; ?>
 
 </body>
 </html>

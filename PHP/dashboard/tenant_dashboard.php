@@ -321,6 +321,30 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         <?php endif; ?>
     </div>
 
+    
+<!-- Tenant Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+        <h2 class="text-2xl font-semibold mb-4">My Information</h2>
+        <?php if ($tenantInfo): ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
+                <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
+                <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
+                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
+                <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
+                <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
+                <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
+                <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
+            </div>
+        <?php else: ?>
+            <p class="text-gray-600">No information found yet.</p>
+        <?php endif; ?>
+        <div class="flex justify-end mt-6">
+            <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                View / Edit My Information
+            </a>
+        </div>
+    </div>
 </div>
 
             <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -421,53 +445,15 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
     <?php else: ?>
         <div class="text-center py-12 mb-8">
             <p class="text-slate-500 italic">No payments found.</p>
+            </div>
+            <div class="text-center py-12 mb-8">
             <a href="../makePayment.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Make a Payment</a>
         </div>
     <?php endif; ?>
-
-    <!-- Tenant Info -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
-        <h2 class="text-2xl font-semibold mb-4">My Information</h2>
-        <?php if ($tenantInfo): ?>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
-                <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
-                <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
-                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
-                <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
-                <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
-                <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
-            </div>
-        <?php else: ?>
-            <p class="text-gray-600">No information found yet.</p>
-        <?php endif; ?>
-        <div class="flex justify-end mt-6">
-            <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
-                View / Edit My Information
-            </a>
-        </div>
-    </div>
 </section>
 
     
 </main>
-
-            <!-- Footer -->
-            <div class="mt-6 flex items-center justify-between">
-                <p class="text-sm text-slate-600">Showing <span class="font-medium" id="showingCount"><?= count($payments) ?></span> payments</p>
-                <div class="flex items-center space-x-2">
-                <button class="px-3 py-1 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg">Export CSV</button>
-                <button class="px-3 py-1 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg">Print</button>
-                </div>
-            </div>
-
-            
-
-  
-
-        </div>
-    </main>
 
     <!-- Footer -->
 <?php include '../../assets/footer.php'; ?>

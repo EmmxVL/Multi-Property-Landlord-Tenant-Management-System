@@ -443,11 +443,11 @@ try {
                     </svg>
                     </div>
                     <div class="absolute inset-y-0 left-10 flex items-center pointer-events-none">
-                    <span class="text-gray-500 text-sm">+63</span>
+                    <span class="text-gray-500 text-sm"></span>
                     </div>
-                    <input type="tel" id="phone" name="phone" maxlength="13"
-                        placeholder="9XX XXX XXXX"
-                        class="w-full pl-20 pr-4 py-3 border border-gray-300 rounded-xl
+                    <input id="phone" name="phone" maxlength="13" required
+                        placeholder="Enter landlord's phone number"
+                        class="w-full pl-8 pr-4 py-4 border border-gray-300 rounded-xl
                                 focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                 transition-all duration-200" />
                 </div>
