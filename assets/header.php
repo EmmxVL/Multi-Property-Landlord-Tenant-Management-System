@@ -25,10 +25,37 @@ $baseURL = dirname($_SERVER['SCRIPT_NAME']) === '../../'
                            $initials = ($names[0][0] ?? '') . ($names[1][0] ?? ''); echo htmlspecialchars(strtoupper($initials) ?: 'A');
                        ?>
                     </div>
-                 <a href="<?= $baseURL ?>logout.php" title="Logout">
+                 <a href="<?= $baseURL ?>logout.php" title="Logout" id="logoutBtn">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                      </a>
                 </div>
             </div>
         </div>
     </header>
+    <!-- SweetAlert2 for logout confirmation -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var logoutBtn = document.getElementById('logoutBtn');
+            if (!logoutBtn) return;
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var href = this.getAttribute('href');
+                Swal.fire({
+                    title: 'Are you sure you want to logout?',
+                    text: "You'll be signed out of your account.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, logout',
+                    cancelButtonText: 'Cancel'
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        // Proceed to logout
+                        window.location.href = href;
+                    }
+                });
+            });
+        });
+    </script>
