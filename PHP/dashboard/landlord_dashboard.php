@@ -151,6 +151,19 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
+
+            <!-- View / Manage Button -->
+            <?php if ($_SESSION['role'] === 'Landlord'): ?>
+                <a href="../manageMaintenance.php"
+                   class="text-sm px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
+                   Manage
+                </a>
+            <?php else: ?>
+                <a href="../tenantMaintenance.php"
+                   class="text-sm px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
+                   View
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>
