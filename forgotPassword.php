@@ -156,8 +156,6 @@ ob_end_flush(); // output any buffered HTML safely
     </div>
   </main>
 
-  <?php include 'assets/footer.php'; ?>
-
   <!-- Cursor-Responsive Gradient Animation -->
   <script>
     let targetX = 50, targetY = 50, currentX = 50, currentY = 50;
