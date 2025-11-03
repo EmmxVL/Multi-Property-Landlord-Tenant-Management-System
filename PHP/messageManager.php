@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 class MessageManager {
     private PDO $db;
-    private string $apiToken = "API KEY"; 
+    private string $apiToken = "31975a73af3c2c43ba0bea92d9c5200fd623f5ea"; 
     private string $singleUrl = "https://sms.iprogtech.com/api/v1/sms_messages";
     private string $bulkUrl = "https://sms.iprogtech.com/api/v1/sms_messages/send_bulk";
 
