@@ -73,199 +73,209 @@ $tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Manage Tenants</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
-    <link rel="stylesheet" href="../../assets/styles.css">
-   <script src="../../assets/script.js" defer></script> 
-    <script src="../../assets/landlord.js" defer></script>
+  <meta charset="UTF-8">
+  <title>Manage Tenants | Unitly</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../../assets/styles.css">
+  <script src="../../assets/script.js" defer></script>
+  <script src="../../assets/landlord.js" defer></script>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
-    <div id="notification-container"></div>
-    <?php include '../assets/header.php'; ?>
 
-<main class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-10">
-  <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
-    
-    <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-6">
-      👥 Manage Tenants
-    </h1>
+<body class="bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 min-h-screen font-sans flex flex-col">
+  
+  <!-- Header -->
+  <?php include '../assets/header.php'; ?>
 
-    <!-- Add Tenant Form -->
-    <form method="POST" class="space-y-4 mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
-      <div>
-        <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
-        <input type="text" id="full_name" name="full_name"
-               class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-               placeholder="e.g., Juan Dela Cruz" required>
+  <main class="flex-grow py-10">
+    <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl">
+      
+      <!-- Page Title -->
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-extrabold text-blue-900">Manage Tenants</h1>
       </div>
 
-      <div>
-        <label for="phone_no" class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-        <input type="text" id="phone_no" name="phone_no" maxlength="11"
-               class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-               placeholder="e.g., 09123456789" required>
-      </div>
+      <!-- Add Tenant Form -->
+      <form method="POST" class="space-y-5 mb-10 bg-slate-50/70 p-6 rounded-2xl border border-slate-200">
+        <div>
+          <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
+          <input type="text" id="full_name" name="full_name"
+                 class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                 placeholder="e.g., Juan Dela Cruz" required>
+        </div>
 
-      <div>
-  <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-  <div class="relative">
-    <input type="password" id="password" name="password"
-           class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-           placeholder="Set an account password" required>
-    <button type="button" id="toggle-password"
-            class="absolute inset-y-0 right-0 pr-3 flex items-center"
-            aria-label="Toggle Password Visibility">
-      <svg class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors"
-           id="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5
-                 c4.478 0 8.268 2.943 9.542 7
-                 -1.274 4.057-5.064 7-9.542 7
-                 -4.477 0-8.268-2.943-9.542-7z" />
-      </svg>
-    </button>
-  </div>
-</div>
+        <div>
+          <label for="phone_no" class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
+          <input type="text" id="phone_no" name="phone_no" maxlength="11"
+                 class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                 placeholder="e.g., 09123456789" required>
+        </div>
 
-      <div class="flex justify-end">
-        <button type="submit" name="add_tenant"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md transition-all">
-          ➕ Add Tenant
-        </button>
-      </div>
-    </form>
+        <div>
+          <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+          <div class="relative">
+            <input type="password" id="password" name="password"
+                   class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                   placeholder="Set account password" required>
+            <button type="button" id="toggle-password"
+                    class="absolute inset-y-0 right-3 flex items-center"
+                    aria-label="Toggle Password Visibility">
+              <svg class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" id="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5
+                         c4.478 0 8.268 2.943 9.542 7
+                         -1.274 4.057-5.064 7-9.542 7
+                         -4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-    <!-- Tenant List -->
-    <h2 class="text-2xl font-semibold text-slate-800 mb-4">🧾 Your Tenants</h2>
+        <div class="flex justify-end">
+          <button type="submit" name="add_tenant"
+                  class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+            ➕ Add Tenant
+          </button>
+        </div>
+      </form>
 
-    <?php if ($tenants): ?>
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse text-sm text-slate-700">
-          <thead class="bg-slate-100 border-b border-slate-300 text-slate-800 font-semibold">
-            <tr>
-              <th class="p-3 text-left">Full Name</th>
-              <th class="p-3 text-left">Phone Number</th>
-              <th class="p-3 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($tenants as $tenant): ?>
-              <tr class="hover:bg-blue-50 border-b border-slate-200">
-                <td class="p-3 font-medium text-slate-800">
-                  <a href="viewTenantInfo.php?id=<?= $tenant['user_id'] ?>" 
-                     class="text-blue-600 hover:text-blue-800 hover:underline">
-                    <?= htmlspecialchars($tenant["full_name"]) ?>
-                  </a>
-                </td>
-                <td class="p-3"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
-                <td class="p-3 text-center space-x-2">
-                  <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" 
-                     class="text-blue-600 hover:text-blue-800 font-medium hover:underline">
-                    Edit
-                  </a>
-                  <span class="text-slate-400">|</span>
-                  <a href="?delete=<?= $tenant['user_id'] ?>" 
-                    class="delete-tenant text-red-600 hover:text-red-800 font-medium hover:underline"
-                    data-id="<?= $tenant['user_id'] ?>">
-                    Delete
-                  </a>
-                </td>
+      <!-- Tenant List -->
+      <h2 class="text-2xl font-semibold text-blue-900 mb-4 flex items-center gap-2">
+        🧾 Tenant List
+      </h2>
+
+      <?php if ($tenants): ?>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-sm text-slate-700">
+            <thead class="bg-slate-100 border-b border-slate-300 text-slate-800 font-semibold">
+              <tr>
+                <th class="p-3 text-left">Full Name</th>
+                <th class="p-3 text-left">Phone Number</th>
+                <th class="p-3 text-center">Actions</th>
               </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <?php foreach ($tenants as $tenant): ?>
+                <tr class="hover:bg-blue-50 transition-all duration-150 border-b border-slate-200">
+                  <td class="p-3 font-medium text-blue-700">
+                    <a href="viewTenantInfo.php?id=<?= $tenant['user_id'] ?>" class="hover:underline">
+                      <?= htmlspecialchars($tenant["full_name"]) ?>
+                    </a>
+                  </td>
+                  <td class="p-3"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
+                  <td class="p-3 text-center space-x-2">
+                    <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" 
+                       class="text-blue-600 hover:text-blue-800 font-medium hover:underline">
+                      Edit
+                    </a>
+                    <span class="text-slate-400">|</span>
+                    <a href="#" 
+                       class="delete-tenant text-red-600 hover:text-red-800 font-medium hover:underline"
+                       data-id="<?= $tenant['user_id'] ?>">
+                      Delete
+                    </a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php else: ?>
+        <div class="text-center py-10">
+          <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <p class="text-slate-500 font-medium text-lg mb-1">No tenants found</p>
+          <p class="text-slate-400 text-sm">Add a new tenant using the form above.</p>
+        </div>
+      <?php endif; ?>
+
+      <!-- Back -->
+      <div class="mt-8 text-center">
+        <a href="dashboard/landlord_dashboard.php"
+           class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-all duration-150">
+          ← Back to Dashboard
+        </a>
       </div>
-    <?php else: ?>
-      <p class="text-center text-slate-500 mt-6">No tenants found.</p>
-    <?php endif; ?>
-
-    <div class="mt-8 text-center">
-      <a href="dashboard/landlord_dashboard.php" class="text-blue-600 hover:text-blue-800 font-medium">
-        ← Back to Dashboard
-      </a>
     </div>
-  </div>
-</main>
+  </main>
 
-<script>
-document.getElementById("togglePassword").addEventListener("click", function() {
-  const pass = document.getElementById("password");
-  pass.type = pass.type === "password" ? "text" : "password";
-});
-</script>
+  <!-- Footer -->
+  <?php include '../assets/footer.php'; ?>
 
-<!-- SweetAlert for session messages -->
-<?php if (!empty($_SESSION["success"])): ?>
-<script>
-Swal.fire({ icon: 'success', title: 'Success', text: <?= json_encode($_SESSION["success"]) ?> });
-</script>
-<?php unset($_SESSION["success"]); endif; ?>
+  <!-- Password Toggle -->
+  <script>
+  const togglePassword = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("password");
+  const eyeIcon = document.getElementById("eye-icon");
 
-<?php if (!empty($_SESSION["error"])): ?>
-<script>
-Swal.fire({ icon: 'error', title: 'Error', text: <?= json_encode($_SESSION["error"]) ?> });
-</script>
-<?php unset($_SESSION["error"]); endif; ?>
+  togglePassword.addEventListener("click", () => {
+    const isHidden = passwordInput.type === "password";
+    passwordInput.type = isHidden ? "text" : "password";
+  });
+  </script>
 
-<?php include '../assets/footer.php'; ?>
-<script>
-const togglePassword = document.getElementById("toggle-password");
-const passwordInput = document.getElementById("password");
-const eyeIcon = document.getElementById("eye-icon");
+  <!-- SweetAlert Messages -->
+  <?php if (!empty($_SESSION["success"])): ?>
+  <script>
+  Swal.fire({
+    icon: 'success',
+    title: 'Success!',
+    text: <?= json_encode($_SESSION["success"]) ?>,
+    confirmButtonColor: "#2563eb",
+    timer: 2000,
+    showConfirmButton: false
+  });
+  </script>
+  <?php unset($_SESSION["success"]); endif; ?>
 
-togglePassword.addEventListener("click", () => {
-  const isHidden = passwordInput.type === "password";
-  passwordInput.type = isHidden ? "text" : "password";
+  <?php if (!empty($_SESSION["error"])): ?>
+  <script>
+  Swal.fire({
+    icon: 'error',
+    title: 'Error!',
+    text: <?= json_encode($_SESSION["error"]) ?>,
+    confirmButtonColor: "#2563eb"
+  });
+  </script>
+  <?php unset($_SESSION["error"]); endif; ?>
 
-  // Toggle eye icon between open and closed
-  eyeIcon.innerHTML = isHidden
-    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7
-            a9.957 9.957 0 012.958-4.944m2.122-1.516A9.957 9.957 0 0112 5
-            c4.478 0 8.268 2.943 9.542 7
-            a9.956 9.956 0 01-4.39 5.093M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>`
-    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         d="M2.458 12C3.732 7.943 7.523 5 12 5
-            c4.478 0 8.268 2.943 9.542 7
-            -1.274 4.057-5.064 7-9.542 7
-            -4.477 0-8.268-2.943-9.542-7z" />`;
-});
-</script>
+  <!-- Delete Confirmation -->
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".delete-tenant").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const tenantId = link.getAttribute("data-id");
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const deleteLinks = document.querySelectorAll(".delete-tenant");
-
-  deleteLinks.forEach(link => {
-    link.addEventListener("click", function(e) {
-      e.preventDefault();
-      const tenantId = this.getAttribute("data-id");
-
-      Swal.fire({
-        title: "Delete Tenant?",
-        text: "Are you sure you want to remove this tenant? This action cannot be undone.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, delete",
-        cancelButtonText: "Cancel",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Redirect only if user confirms
-          window.location.href = `?delete=${tenantId}`;
-        }
+        Swal.fire({
+          title: "Delete Tenant?",
+          text: "Are you sure you want to remove this tenant? This action cannot be undone.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#dc2626",
+          cancelButtonColor: "#6b7280",
+          confirmButtonText: "Yes, delete",
+          cancelButtonText: "Cancel",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = `?delete=${tenantId}`;
+          }
+        });
       });
     });
   });
-});
-</script>
+  </script>
 
 </body>
 </html>

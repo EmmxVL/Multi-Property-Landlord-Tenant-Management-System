@@ -40,87 +40,117 @@ $allMessages = $allStmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Tenant Messages</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Tenant Messages | Unitly</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <script src="../assets/script.js" defer></script>
+  <script src="../assets/tenant.js" defer></script>
 </head>
-<body class="bg-gray-100 p-6">
 
-<div class="bg-white shadow-md rounded-lg p-5">
-    <h2 class="text-xl font-semibold text-gray-800 mb-3">📩 Recent Messages</h2>
+<?php include '../assets/header.php'; ?>
 
-    <?php if (!empty($recentMessages)): ?>
-        <ul class="divide-y divide-gray-200">
+<body class="bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 min-h-screen font-sans flex flex-col">
+
+  <!-- Main Section -->
+  <main class="flex-grow flex items-center justify-center py-12 px-6">
+    <div class="bg-white/80 backdrop-blur-md w-full max-w-4xl rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-2xl">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-3xl font-extrabold text-blue-900 flex items-center gap-2">
+            📩 <span>Recent Messages</span>
+          </h2>
+          <p class="text-slate-600 text-sm mt-1">Stay updated with your landlord communications.</p>
+        </div>
+        <a href="dashboard/tenant_dashboard.php"
+           class="text-sm font-medium text-blue-700 hover:text-indigo-700 hover:underline transition">
+          ← Back to Dashboard
+        </a>
+      </div>
+
+      <!-- Messages Section -->
+      <div class="bg-white/70 rounded-2xl border border-slate-200 shadow-sm p-6">
+        <?php if (!empty($recentMessages)): ?>
+          <ul class="divide-y divide-slate-200">
             <?php foreach ($recentMessages as $msg): ?>
-                <li class="py-3">
-                    <div class="flex justify-between">
-                        <p class="text-gray-700"><?= htmlspecialchars($msg['message']) ?></p>
-                        <span class="text-sm text-gray-500"><?= date("M d, Y", strtotime($msg['date_sent'])) ?></span>
-                    </div>
-                    <p class="text-xs 
-                        <?= $msg['message_status'] === 'Pending' ? 'text-yellow-500' : 
-                            ($msg['message_status'] === 'Completed' ? 'text-green-500' : 'text-red-500') ?>">
-                        <?= htmlspecialchars($msg['message_status']) ?>
-                    </p>
-                </li>
+              <li class="py-4">
+                <div class="flex justify-between items-start">
+                  <p class="text-slate-800"><?= htmlspecialchars($msg['message']) ?></p>
+                  <span class="text-sm text-slate-500">
+                    <?= date("M d, Y", strtotime($msg['date_sent'])) ?>
+                  </span>
+                </div>
+                <p class="mt-1 text-xs font-semibold
+                  <?= $msg['message_status'] === 'Pending' ? 'text-yellow-600' : 
+                      ($msg['message_status'] === 'Completed' ? 'text-green-600' : 'text-red-600') ?>">
+                  <?= htmlspecialchars($msg['message_status']) ?>
+                </p>
+              </li>
             <?php endforeach; ?>
-        </ul>
+          </ul>
 
-        <?php if (count($allMessages) > 3): ?>
-            <div class="text-center pt-3">
-                <button id="viewAllBtn" 
-                        class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    View all <?= count($allMessages) ?> messages →
-                </button>
+          <?php if (count($allMessages) > 3): ?>
+            <div class="text-center pt-5">
+              <button id="viewAllBtn"
+                      class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition">
+                View all <?= count($allMessages) ?> messages →
+              </button>
             </div>
+          <?php endif; ?>
+
+        <?php else: ?>
+          <p class="text-center text-slate-500 italic">No messages yet.</p>
         <?php endif; ?>
-
-    <?php else: ?>
-        <p class="text-gray-500">No messages yet.</p>
-    <?php endif; ?>
-</div>
-
-<!-- ✅ MODAL FOR ALL MESSAGES -->
-<div id="messageModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 max-h-[80vh] overflow-y-auto p-6 relative">
-        <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-        <h3 class="text-lg font-semibold mb-4">All Messages</h3>
-        <ul class="divide-y divide-gray-200">
-            <?php foreach ($allMessages as $msg): ?>
-                <li class="py-3">
-                    <div class="flex justify-between">
-                        <p class="text-gray-800"><?= htmlspecialchars($msg['message']) ?></p>
-                        <span class="text-sm text-gray-500"><?= date("M d, Y", strtotime($msg['date_sent'])) ?></span>
-                    </div>
-                    <p class="text-xs 
-                        <?= $msg['message_status'] === 'Pending' ? 'text-yellow-500' : 
-                            ($msg['message_status'] === 'Completed' ? 'text-green-500' : 'text-red-500') ?>">
-                        <?= htmlspecialchars($msg['message_status']) ?>
-                    </p>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+      </div>
     </div>
-</div>
+  </main>
 
-<script>
-// ✅ Modal toggle
-const viewAllBtn = document.getElementById('viewAllBtn');
-const modal = document.getElementById('messageModal');
-const closeModal = document.getElementById('closeModal');
+  <!-- MODAL -->
+  <div id="messageModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl w-11/12 md:w-3/4 lg:w-1/2 max-h-[85vh] overflow-y-auto p-8 relative border border-slate-200">
+      <button id="closeModal"
+              class="absolute top-3 right-4 text-slate-500 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      <h3 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+        💬 <span>All Messages</span>
+      </h3>
+      <ul class="divide-y divide-slate-200">
+        <?php foreach ($allMessages as $msg): ?>
+          <li class="py-4">
+            <div class="flex justify-between items-start">
+              <p class="text-slate-800"><?= htmlspecialchars($msg['message']) ?></p>
+              <span class="text-sm text-slate-500">
+                <?= date("M d, Y", strtotime($msg['date_sent'])) ?>
+              </span>
+            </div>
+            <p class="mt-1 text-xs font-semibold
+              <?= $msg['message_status'] === 'Pending' ? 'text-yellow-600' :
+                  ($msg['message_status'] === 'Completed' ? 'text-green-600' : 'text-red-600') ?>">
+              <?= htmlspecialchars($msg['message_status']) ?>
+            </p>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </div>
 
-if (viewAllBtn) {
-    viewAllBtn.addEventListener('click', () => {
-        modal.classList.remove('hidden');
+  <!-- Script -->
+  <script>
+    const viewAllBtn = document.getElementById('viewAllBtn');
+    const modal = document.getElementById('messageModal');
+    const closeModal = document.getElementById('closeModal');
+
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    }
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
     });
-}
-closeModal.addEventListener('click', () => {
-    modal.classList.add('hidden');
-});
-window.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.add('hidden');
-});
-</script>
+  </script>
 
+  <?php include '../assets/footer.php'; ?>
 </body>
 </html>
