@@ -13,33 +13,61 @@ class PropertyManager {
     }
 
     /* -------------------- CREATE -------------------- */
-    public function addProperty(string $propertyName, string $location): bool {
-        if (empty($propertyName) || empty($location)) {
-            $_SESSION["error"] = "All fields are required.";
-            return false;
-        }
+   public function addProperty(string $propertyName, string $location, ?float $latitude = null, ?float $longitude = null): bool {
+    if (empty($propertyName) || empty($location)) {
+        $_SESSION["error"] = "All fields are required.";
+        return false;
+    }
 
+    try {
+        $this->db->beginTransaction();
+
+        // Insert location first
         $stmt = $this->db->prepare("
-            INSERT INTO property_tbl (user_id, property_name, location)
-            VALUES (:user_id, :property_name, :location)
+            INSERT INTO location_tbl (location_name, latitude, longitude)
+            VALUES (:location_name, :latitude, :longitude)
         ");
-        return $stmt->execute([
+        $stmt->execute([
+            ":location_name" => $location,
+            ":latitude" => $latitude,
+            ":longitude" => $longitude
+        ]);
+        $locationId = $this->db->lastInsertId();
+
+        // Insert property linked to that location
+        $stmt = $this->db->prepare("
+            INSERT INTO property_tbl (user_id, property_name, location_id)
+            VALUES (:user_id, :property_name, :location_id)
+        ");
+        $stmt->execute([
             ":user_id" => $this->userId,
             ":property_name" => $propertyName,
-            ":location" => $location
+            ":location_id" => $locationId
         ]);
+
+        $this->db->commit();
+        return true;
+    } catch (PDOException $e) {
+        $this->db->rollBack();
+        $_SESSION["error"] = "Database Error: " . $e->getMessage();
+        return false;
     }
+}
+
 
     /* -------------------- READ -------------------- */
-    public function getProperties(): array {
-        $stmt = $this->db->prepare("
-            SELECT * FROM property_tbl
-            WHERE user_id = :user_id
-            ORDER BY property_id DESC
-        ");
-        $stmt->execute([":user_id" => $this->userId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+   public function getProperties(): array {
+    $stmt = $this->db->prepare("
+        SELECT p.property_id, p.property_name, l.location_name, l.latitude, l.longitude
+        FROM property_tbl p
+        LEFT JOIN location_tbl l ON p.location_id = l.location_id
+        WHERE p.user_id = :user_id
+        ORDER BY p.property_id DESC
+    ");
+    $stmt->execute([":user_id" => $this->userId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
     public function getPropertyById(int $id): ?array {
         $stmt = $this->db->prepare("

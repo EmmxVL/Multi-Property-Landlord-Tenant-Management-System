@@ -44,37 +44,25 @@ $payments = $paymentManager->getPaymentsByTenant($userId);
 $nextPayment = $paymentManager->getNextDuePayment($userId);
 
 // Fetch tenant info (optional for display)
-$stmt = $db->prepare("SELECT  u.full_name, 
-        u.phone_no,
-        t.email, 
-        t.birthdate, 
-        t.age, 
-        t.gender, 
-        t.id_type, 
-        t.id_number, 
-        t.id_photo, 
-        t.birth_certificate, 
-        t.tenant_photo, 
-        t.occupation, 
-        t.employer_name, 
-        t.monthly_income, 
-        t.proof_of_income, 
-        p.property_id, 
-        p.property_name,
-        un.unit_id, 
-        un.unit_name,
-        l.lease_start_date, 
-        l.lease_end_date, 
-        t.monthly_rent, 
-        l.lease_status, 
-        t.emergency_name, 
-        t.emergency_contact, 
-        t.relationship
+$stmt = $db->prepare("SELECT  
+        u.full_name, u.phone_no,
+        t.email, t.birthdate, t.age, t.gender, t.id_type, 
+        t.id_number, t.id_photo, t.birth_certificate, t.tenant_photo, 
+        t.occupation, t.employer_name, t.monthly_income, t.proof_of_income,
+        p.property_id, p.property_name,
+        un.unit_id, un.unit_name,
+        l.lease_start_date, l.lease_end_date, t.monthly_rent, l.lease_status,
+        loc.latitude, loc.longitude,
+        t.emergency_name, t.emergency_contact, t.relationship
     FROM tenant_info_tbl t
     LEFT JOIN user_tbl u ON t.user_id = u.user_id
     LEFT JOIN lease_tbl l ON t.user_id = l.user_id
     LEFT JOIN unit_tbl un ON l.unit_id = un.unit_id
-    LEFT JOIN property_tbl p ON un.property_id = p.property_id WHERE t.user_id = :user_id");
+    LEFT JOIN property_tbl p ON un.property_id = p.property_id
+    LEFT JOIN location_tbl as loc ON p.location_id = loc.location_id
+    WHERE t.user_id = :user_id");
+
+
 $stmt->execute(['user_id' => $userId]);
 $tenantInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -105,35 +93,55 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
      <!-- Current Lease -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
 
-    <!-- Current Apartment -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-    <?php if (!empty($leases)): ?>
-        <?php 
-            // Get the first active lease
-            $currentLease = $leases[0]; 
-        ?>
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-slate-600 text-sm font-medium">Apartment </p>
-                <p class="text-2xl font-semibold text-slate-800 mt-1">
-                    <?= htmlspecialchars($currentLease['property_name']) ?>
-                </p>
-                <p class="text-xs text-slate-600 mt-1">
-                    Unit Name: <?= htmlspecialchars($currentLease['unit_name']) ?>
-                </p>
-            </div>
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                </svg>
-            </div>
-        </div>
-    <?php else: ?>
-        <p class="text-slate-500 text-sm italic text-center">No active apartment found</p>
-    <?php endif; ?>
+<!-- Current Apartment -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card flex flex-col justify-between">
+  <?php if (!empty($leases)): ?>
+    <?php $currentLease = $leases[0]; ?>
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-slate-600 text-sm font-medium">Apartment</p>
+        <p class="text-2xl font-semibold text-slate-800 mt-1">
+          <?= htmlspecialchars($currentLease['property_name'] ?? 'N/A') ?>
+        </p>
+        <p class="text-xs text-slate-600 mt-1">
+          Unit: <?= htmlspecialchars($currentLease['unit_name'] ?? 'N/A') ?>
+        </p>
+      </div>
+      <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="relative mt-2">
+      <div id="tenantMap" class="w-full h-48 rounded-lg border border-slate-200 shadow-inner"></div>
+      <a target="_blank" 
+         href="https://www.google.com/maps/search/?api=1&query=<?= $tenantInfo['latitude']?>,<?= $tenantInfo['longitude'] ?>"
+         class="block text-center text-xs text-blue-600 mt-2 hover:underline">
+        View in Google Maps
+      </a>
+    </div>
+
+  <?php else: ?>
+    <div class="flex flex-col items-center justify-center text-center py-10">
+      <svg class="w-8 h-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2
+                 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402
+                 2.599 1M12 8V7m0 1v8m0 0v1m0-1
+                 c-1.11 0-2.08-.402-2.599-1"/>
+      </svg>
+      <p class="text-slate-500 italic text-sm">No active apartment found</p>
+    </div>
+  <?php endif; ?>
 </div>
+
+
 
 
     <!-- Next Payment -->
@@ -486,6 +494,31 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
             });
         <?php endif; ?>
     </script>
+<script>
+function initTenantMap() {
+  const mapElement = document.getElementById("tenantMap");
+  if (!mapElement) return;
+
+  const lat = <?= isset($tenantInfo['latitude']) ? (float)$tenantInfo['latitude'] : 13.940 ?>;
+  const lng = <?= isset($tenantInfo['longitude']) ? (float)$tenantInfo['longitude'] : 121.163 ?>;
+
+  const propertyLocation = { lat, lng };
+  const map = new google.maps.Map(mapElement, {
+    center: propertyLocation,
+    zoom: 15,
+  });
+
+  new google.maps.Marker({
+    position: propertyLocation,
+    map: map,
+    title: "<?= htmlspecialchars($tenantInfo['property_name'] ?? 'Property') ?>"
+  });
+}
+</script>
+
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu3r0ExYjkFi8fMdC2_Jb0Z7uYyEl0Ruc&callback=initTenantMap">
+</script>
 
 </body>
 </html>
