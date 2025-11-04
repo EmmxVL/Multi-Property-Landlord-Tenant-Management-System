@@ -438,9 +438,9 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
                             </td>
                             <td class="py-4 px-4 text-center">
                                 <?php if ($payment['receipt_upload']): ?>
-                                    <a href="../../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank"
+                                    <a href="../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank"
                                         class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg">
-                                        👁 View
+                                         View
                                     </a>
                                 <?php else: ?>
                                     <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-lg">N/A</span>
