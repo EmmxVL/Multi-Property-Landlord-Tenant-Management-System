@@ -46,7 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $data['existing_tenant_photo'] = $tenantInfo['tenant_photo'] ?? null;
     $data['existing_proof_of_income'] = $tenantInfo['proof_of_income'] ?? null;
 
-    if ($tenantInfo) {
+    // ✅ FIXED: Check if tenant_info record actually exists
+    $stmt = $db->prepare("SELECT COUNT(*) FROM tenant_info_tbl WHERE user_id = :user_id");
+    $stmt->execute(['user_id' => $userId]);
+    $hasInfo = $stmt->fetchColumn() > 0;
+
+    if ($hasInfo) {
         $updated = $tenantManager->updateTenantInfo($userId, $data, $files);
         $success = $updated ? "Tenant information updated successfully." : "Failed to update tenant info.";
     } else {

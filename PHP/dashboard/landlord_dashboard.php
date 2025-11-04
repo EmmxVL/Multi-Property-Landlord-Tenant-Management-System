@@ -243,7 +243,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                   </svg>
                 </div>
                 <span class="text-sm font-medium">
-                  <?= htmlspecialchars($property['location']) ?>
+                  <?= htmlspecialchars($property['location_name']) ?>
                 </span>
               </div>
             </div>
@@ -454,7 +454,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                       <td class="py-1 px-2"><?= htmlspecialchars($payment['status']) ?></td>
                       <td class="py-1 px-2">
                         <?php if ($payment['receipt_upload']): ?>
-                          <a href="../../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank" class="text-blue-600 hover:underline">View</a>
+                          <a href="../uploads/<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank" class="text-blue-600 hover:underline">View</a>
                         <?php else: ?>N/A<?php endif; ?>
                       </td>
                       <td class="py-1 px-2">
