@@ -5,7 +5,7 @@ body {
     margin: 0;
 }
 
-/* Custom hover effects for project cards */
+
 .project-card {
     transition: background-color 0.2s ease;
     cursor: pointer;

@@ -60,8 +60,6 @@ unset($_SESSION['login_error']);
     document.body.style.setProperty("--y", `${y}%`);
   });
 </script>
-
-  </script>
 <body class="font-sans text-slate-800 min-h-screen flex flex-col">
   <!-- Login Section -->
   <main class="flex flex-grow items-center justify-center py-12 px-4">
