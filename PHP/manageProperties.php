@@ -53,7 +53,6 @@ $properties = $propertyManager->getProperties();
   <link rel="stylesheet" href="../assets/styles.css">
   <script src="../assets/script.js" defer></script>
   <script src="../assets/admin.js" defer></script>
-
   <!-- ✅ Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
@@ -109,32 +108,36 @@ $properties = $propertyManager->getProperties();
         <h2 class="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">➕ Add New Property</h2>
 
         <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label for="property_name" class="block text-sm font-medium text-slate-700 mb-1">Property Name</label>
-            <input type="text" id="property_name" name="property_name"
-                   class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-                   placeholder="e.g., Sunset Apartments" required>
-          </div>
+  <div>
+    <label for="property_name" class="block text-sm font-medium text-slate-700 mb-1">Property Name</label>
+    <input type="text" id="property_name" name="property_name"
+           class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+           placeholder="e.g., Sunset Apartments" required>
+  </div>
+  <div>
+    <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
+    <input type="text" id="location" name="location"
+           class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+           placeholder="e.g., Lipa City, Batangas" required>
+  </div>
+  
+  <!-- ✅ Leaflet Map Picker - Now properly spans both columns -->
+  <div class="md:col-span-2 mt-4">
+    <div class="flex justify-center">
+      <div class="w-full max-w-md">
+        <label class="block text-sm font-medium text-slate-700 mb-2 text-center">📍 Pin Location on Map</label>
+        <div id="map" class="w-full rounded-2xl border border-slate-300" style="height: 400px;"></div>
+      </div>
+    </div>
+  </div>
 
-          <div>
-            <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
-            <input type="text" id="location" name="location"
-                   class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-                   placeholder="e.g., Lipa City, Batangas" required>
+  <!-- Hidden Lat/Lng Inputs -->
+  <input type="hidden" id="latitude" name="latitude">
+  <input type="hidden" id="longitude" name="longitude">
+</div>
 
-            <!-- ✅ Leaflet Map Picker -->
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-slate-700 mb-2">📍 Pin Location on Map</label>
-              <div id="map" class="w-full rounded-2xl border border-slate-300"></div>
-            </div>
 
-            <!-- Hidden Lat/Lng Inputs -->
-            <input type="hidden" id="latitude" name="latitude">
-            <input type="hidden" id="longitude" name="longitude">
-          </div>
-        </div>
-
-        <div class="flex justify-end mt-6">
+        <div class="flex justify-center mt-6">
           <button type="submit" name="add_property"
                   class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition">
             ➕ Add Property

@@ -159,17 +159,6 @@ if (!empty($leases)) {
                         </div>
                     </div>
 
-                    <!-- Map Section -->
-                    <div class="relative mt-2">
-                        <div id="tenantMap"></div>
-                        <!-- OpenStreetMap View Link -->
-                        <a id="osmLink" target="_blank"
-                            href="https://www.openstreetmap.org/?mlat=<?= $lat ?>&mlon=<?= $lng ?>#map=18/<?= $lat ?>/<?= $lng ?>"
-                            class="block text-center text-xs text-blue-600 mt-2 hover:underline">
-                            View in OpenStreetMap
-                        </a>
-                    </div>
-
                 <?php else: ?>
                     <!-- No Active Apartment -->
                     <div class="flex flex-col items-center justify-center text-center py-10">
@@ -208,35 +197,35 @@ if (!empty($leases)) {
 
             <!-- Maintenance Requests -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-600 text-sm font-medium">Maintenance Requests</p>
-                        <p class="text-3xl font-bold text-slate-800 mt-1"><?= $maintenanceCount ?? 0 ?></p>
-                        <p class="text-xs text-orange-600 mt-1"><?= $pendingRequests ?? 0 ?> pending</p>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066
-                                    c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572
-                                    c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573
-                                    c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065
-                                    c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066
-                                    c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572
-                                    c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573
-                                    c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </div>
-                        <a href="../tenantMaintenance.php"
-                        class="mt-3 text-sm font-medium text-orange-600 hover:underline">
-                        View Requests
-                        </a>
-                    </div>
-                </div>
+    <div class="flex items-center justify-center">
+        <div>
+            <p class="text-slate-600 text-sm font-medium">Maintenance Requests</p>
+            <p class="text-3xl font-bold text-slate-800 mt-1"><?= $maintenanceCount ?? 0 ?></p>
+            <p class="text-xs text-orange-600 mt-1"><?= $pendingRequests ?? 0 ?> pending</p>
+        </div>
+        <div class="flex flex-col items-center justify-between h-full">
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066
+                        c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572
+                        c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573
+                        c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065
+                        c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066
+                        c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572
+                        c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573
+                        c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
             </div>
+            <a href="../tenantMaintenance.php"
+            class="text-sm font-medium text-orange-600 hover:underline mt-2">
+            View Requests
+            </a>
+        </div>
+    </div>
+</div>
 
             <!-- Lease Expiration -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
@@ -260,137 +249,172 @@ if (!empty($leases)) {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 fade-in">
+        <!-- New Map Section -->
+        <?php if ($currentProperty): ?>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 fade-in">
+            <!-- Property Location Map -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Property Location
+                    </h3>
+                    <a id="osmLink" target="_blank"
+                        href="https://www.openstreetmap.org/?mlat=<?= $lat ?>&mlon=<?= $lng ?>#map=18/<?= $lat ?>/<?= $lng ?>"
+                        class="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                        Open in Maps →
+                    </a>
+                </div>
+                <div id="tenantMap"></div>
+                <p class="text-xs text-slate-500 mt-3 text-center">
+                    <?= htmlspecialchars($propertyName) ?> - <?= htmlspecialchars($currentProperty['location_name'] ?? 'Location') ?>
+                </p>
+            </div>
+
             <!-- Next Payment Due -->
+<div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <p class="text-slate-600 text-sm font-medium">Next Payment Due</p>
             <?php if ($nextPayment): ?>
-                <div class="bg-white rounded-xl shadow-sm p-8 border border-slate-200 property-card">
+                <p class="text-3xl font-bold text-slate-800 mt-1">
+                    ₱<?= number_format($nextPayment['balance'] ?? 0, 2) ?>
+                </p>
+                <p class="text-xs text-slate-600 mt-1">
+                    Unit: <?= htmlspecialchars($nextPayment['unit_name'] ?? 'N/A') ?>
+                </p>
+                <p class="text-xs text-orange-600 mt-1">
+                    Due: <?= htmlspecialchars($nextPayment['lease_end_date'] ?? 'N/A') ?>
+                </p>
+            <?php else: ?>
+                <p class="text-3xl font-bold text-slate-800 mt-1">₱0.00</p>
+                <p class="text-xs text-slate-600 mt-1">Unit: N/A</p>
+                <p class="text-xs text-slate-500 mt-1">No payment due</p>
+            <?php endif; ?>
+        </div>
+        <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
+            <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 
+                        3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 
+                        2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+            </svg>
+        </div>
+    </div>
+
+    <?php if ($nextPayment && ($nextPayment['balance'] ?? 0) > 0): ?>
+        <a href="../makePayment.php?lease_id=<?= $nextPayment['lease_id'] ?? '' ?>"
+        class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 
+                        0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 
+                        0 00-2-2H9a2 2 0 00-2 2v6a2 2 
+                        0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span>Pay Now</span>
+        </a>
+    <?php elseif ($nextPayment): ?>
+        <div class="w-full bg-green-50 border border-green-200 text-green-700 font-semibold py-3 px-4 rounded-lg text-center flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 
+                        11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Paid in Full</span>
+        </div>
+    <?php else: ?>
+        <div class="w-full bg-gray-50 border border-gray-200 text-gray-500 font-semibold py-3 px-4 rounded-lg text-center">
+            No Payment Due
+        </div>
+    <?php endif; ?>
+</div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 fade-in">
+            <!-- Active Leases -->
+            <div class="bg-white rounded-xl shadow-sm p-8 border border-slate-200 flex flex-col justify-between h-full">
+                <div>
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <p class="text-slate-600 text-sm font-medium">Next Payment Due</p>
-                            <p class="text-3xl font-bold text-slate-800 mt-1">
-                                ₱<?= number_format($nextPayment['balance'], 2) ?>
-                            </p>
-                            <p class="text-xs text-slate-600 mt-1">
-                                Unit: <?= htmlspecialchars($nextPayment['unit_name']) ?>
-                            </p>
-                            <p class="text-xs text-orange-600 mt-1">
-                                Due: <?= htmlspecialchars($nextPayment['lease_end_date']) ?>
-                            </p>
+                            <p class="text-slate-600 text-sm font-medium">Active Leases</p>
+                            <p class="text-3xl font-bold text-slate-800 mt-1"><?= count($leases) ?></p>
+                            <p class="text-xs text-green-600 mt-1">Properties rented</p>
                         </div>
-                        <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 
-                                        3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 
-                                        2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                             </svg>
                         </div>
                     </div>
 
-                    <?php if ($nextPayment['balance'] > 0): ?>
-                        <a href="../makePayment.php?lease_id=<?= $nextPayment['lease_id'] ?>"
-                        class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 
-                                        0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 
-                                        0 00-2-2H9a2 2 0 00-2 2v6a2 2 
-                                        0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                            <span>Pay Now</span>
-                        </a>
+                    <?php if ($leases): ?>
+                        <div class="space-y-3">
+                            <?php foreach (array_slice($leases, 0, 3) as $lease): ?>
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div>
+                                        <p class="font-semibold text-slate-800 text-sm">
+                                            <?= htmlspecialchars($lease['unit_name']) ?>
+                                        </p>
+                                        <p class="text-xs text-slate-600">
+                                            ₱<?= number_format((float)$lease['balance'], 2) ?> balance
+                                        </p>
+                                    </div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                        <?= $lease['lease_status'] === 'Active' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-yellow-100 text-yellow-800' ?>">
+                                        <?= htmlspecialchars($lease['lease_status']) ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <?php if (count($leases) > 3): ?>
+                                                        <div class="text-center pt-2">
+                            <a href="../tenatLease.php" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                View all <?= count($leases) ?> leases
+                            </a>
+                        </div>
+                            <?php endif; ?>
+                        </div>
                     <?php else: ?>
-                        <div class="w-full bg-green-50 border border-green-200 text-green-700 font-semibold py-3 px-4 rounded-lg text-center flex items-center justify-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 
-                                        11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>Paid in Full</span>
+                        <div class="text-center py-4">
+                            <p class="text-slate-500 italic text-sm">No active leases found</p>
                         </div>
                     <?php endif; ?>
                 </div>
-            <?php endif; ?>
+            </div>
 
-            <!-- Dashboard Overview -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <!-- Active Leases -->
-                <div class="bg-white rounded-xl shadow-sm p-8 border border-slate-200 flex flex-col justify-between h-full">
-                    <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <p class="text-slate-600 text-sm font-medium">Active Leases</p>
-                                <p class="text-3xl font-bold text-slate-800 mt-1"><?= count($leases) ?></p>
-                                <p class="text-xs text-green-600 mt-1">Properties rented</p>
-                            </div>
-                            <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                                </svg>
-                            </div>
+            <!-- Tenant Info -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col justify-between h-full">
+                <div>
+                    <h2 class="text-2xl font-semibold mb-4">My Information</h2>
+                    <?php if ($tenantInfo): ?>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
+                            <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
+                            <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
+                            <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
+                            <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
+                            <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
+                            <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
+                            <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
                         </div>
-
-                        <?php if ($leases): ?>
-                            <div class="space-y-3">
-                                <?php foreach (array_slice($leases, 0, 3) as $lease): ?>
-                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                        <div>
-                                            <p class="font-semibold text-slate-800 text-sm">
-                                                <?= htmlspecialchars($lease['unit_name']) ?>
-                                            </p>
-                                            <p class="text-xs text-slate-600">
-                                                ₱<?= number_format((float)$lease['balance'], 2) ?> balance
-                                            </p>
-                                        </div>
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                            <?= $lease['lease_status'] === 'Active' 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : 'bg-yellow-100 text-yellow-800' ?>">
-                                            <?= htmlspecialchars($lease['lease_status']) ?>
-                                        </span>
-                                    </div>
-                                <?php endforeach; ?>
-
-                                <?php if (count($leases) > 3): ?>
-                                    <div class="text-center pt-2">
-                                        <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                                            View all <?= count($leases) ?> leases
-                                        </button>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="text-center py-4">
-                                <p class="text-slate-500 italic text-sm">No active leases found</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                    <?php else: ?>
+                        <p class="text-slate-500 italic text-sm">No information found yet.</p>
+                    <?php endif; ?>
                 </div>
-
-                <!-- Tenant Info -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex flex-col justify-between h-full">
-                    <div>
-                        <h2 class="text-2xl font-semibold mb-4">My Information</h2>
-                        <?php if ($tenantInfo): ?>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                <p><strong>Full Name:</strong> <?= htmlspecialchars($tenantInfo['full_name']); ?></p>
-                                <p><strong>Birthdate:</strong> <?= htmlspecialchars($tenantInfo['birthdate']); ?></p>
-                                <p><strong>Gender:</strong> <?= htmlspecialchars($tenantInfo['gender']); ?></p>
-                                <p><strong>Contact:</strong> <?= htmlspecialchars($tenantInfo['phone_no']); ?></p>
-                                <p><strong>Email:</strong> <?= htmlspecialchars($tenantInfo['email']); ?></p>
-                                <p><strong>Occupation:</strong> <?= htmlspecialchars($tenantInfo['occupation']); ?></p>
-                                <p><strong>Employer:</strong> <?= htmlspecialchars($tenantInfo['employer_name']); ?></p>
-                                <p><strong>Monthly Income:</strong> <?= htmlspecialchars($tenantInfo['monthly_income']); ?></p>
-                            </div>
-                        <?php else: ?>
-                            <p class="text-slate-500 italic text-sm">No information found yet.</p>
-                        <?php endif; ?>
-                    </div>
-                    <div class="flex justify-end mt-6">
-                        <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
-                            View / Edit My Information
-                        </a>
-                    </div>
+                <div class="flex justify-end mt-6">
+                    <a href="../tenantInfo.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                        View / Edit My Information
+                    </a>
                 </div>
             </div>
         </div>

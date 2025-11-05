@@ -227,17 +227,13 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
           <span class="font-bold text-lg text-red-600">₱<?= number_format($lease['balance'], 2) ?></span>
         </div>
       </div>
-
-      <!-- Payment Summary -->
-      <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6 space-y-3">
-        <h3 class="text-lg font-semibold text-slate-800 mb-4">Payment Summary</h3>
-        <div class="flex justify-between"><span>Payment Amount</span><span id="summaryAmount" class="font-bold text-green-600">₱0.00</span></div>
-        <div class="flex justify-between"><span>Remaining Balance</span><span id="remainingBalance" class="font-semibold">₱<?= number_format($lease['balance'], 2) ?></span></div>
-        <div class="pt-3 border-t border-green-200 flex justify-between">
-          <span class="font-medium text-slate-600">Status After Payment</span>
-          <span id="paymentStatus" class="font-bold text-green-600">Partial Payment</span>
-        </div>
-      </div>
+        <div><p>                            </p> </div>
+        <a href="dashboard/tenant_dashboard.php"
+             class="bg-slate-500 hover:bg-slate-600 text-white px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition">
+            ← Back to Dashboard
+          </a>
+      
+      
             </main>
 
 <!-- Footer -->

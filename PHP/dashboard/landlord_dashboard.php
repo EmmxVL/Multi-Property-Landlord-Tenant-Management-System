@@ -428,7 +428,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
           <button onclick="document.getElementById('payment-modal-<?= $lease['lease_id'] ?>').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm mt-2">View / Update Payments</button>
 
-          <!-- Payment Modal -->
+          <!-- PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYMENT MOOOOOOOOOODAAAAAAAAAALLLLLLLLLLLLLLL --> 
           <div id="payment-modal-<?= $lease['lease_id'] ?>" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white p-6 rounded-xl w-full max-w-3xl relative">
               <h3 class="text-lg font-semibold mb-4">Payments for <?= htmlspecialchars($lease['unit_name']) ?> (<?= htmlspecialchars($lease['tenant_name']) ?>)</h3>
@@ -552,8 +552,11 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     </div>
     </section>
 </div>
-      
 </section>
+
+
+
+
 
 <!-- Messages Section -->
 <section class="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 transition-all duration-300 hover:shadow-xl">
