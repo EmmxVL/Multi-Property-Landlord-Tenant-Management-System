@@ -17,8 +17,19 @@ $propertyManager = new PropertyManager($db, $userId);
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_property"])) {
     $name = trim($_POST["property_name"]);
     $location = trim($_POST["location"]);
-    $propertyManager->addProperty($name, $location);
+    $latitude = !empty($_POST["latitude"]) ? (float)$_POST["latitude"] : null;
+    $longitude = !empty($_POST["longitude"]) ? (float)$_POST["longitude"] : null;
+
+    if ($propertyManager->addProperty($name, $location, $latitude, $longitude)) {
+        $_SESSION["success"] = "Property added successfully!";
+    } else {
+        $_SESSION["error"] = "Failed to add property. Please try again.";
+    }
+
+    header("Location: manageProperties.php");
+    exit;
 }
+
 
 // ✅ Delete property
 if (isset($_GET["delete"])) {
@@ -101,12 +112,22 @@ $properties = $propertyManager->getProperties();
           </div>
 
           <div>
-            <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
-            <input type="text" id="location" name="location"
-                   class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-                   placeholder="e.g., Lipa City, Batangas" required>
-          </div>
-        </div>
+  <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
+  <input type="text" id="location" name="location"
+         class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+         placeholder="e.g., Lipa City, Batangas" required>
+
+  <!-- Google Map Picker -->
+  <div class="mt-4">
+    <label class="block text-sm font-medium text-slate-700 mb-2">📍 Pin Location on Map</label>
+    <div id="map" class="w-full h-80 rounded-2xl border border-slate-300"></div>
+  </div>
+
+  <!-- Hidden Lat/Lng Inputs -->
+  <input type="hidden" id="latitude" name="latitude">
+  <input type="hidden" id="longitude" name="longitude">
+</div>
+
 
         <div class="flex justify-end mt-6">
           <button type="submit" name="add_property"
@@ -137,7 +158,7 @@ $properties = $propertyManager->getProperties();
                       <?= htmlspecialchars($p["property_name"]) ?>
                     </a>
                   </td>
-                  <td class="p-3"><?= htmlspecialchars($p["location"]) ?></td>
+                  <td class="p-3"><?= htmlspecialchars($p["location_name"]) ?></td>
                   <td class="p-3 text-center space-x-2">
                     <a href="updateProperties.php?id=<?= $p['property_id'] ?>"
                        class="text-blue-600 hover:text-blue-800 font-medium hover:underline">Edit</a>
@@ -194,5 +215,36 @@ $properties = $propertyManager->getProperties();
     });
   });
   </script>
+  <!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu3r0ExYjkFi8fMdC2_Jb0Z7uYyEl0Ruc&callback=initMap" async defer></script>
+<script>
+let map, marker;
+
+function initMap() {
+  const defaultLocation = { lat: 13.940, lng: 121.163 }; // Lipa City default
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: defaultLocation,
+    zoom: 13,
+  });
+
+  // When the map is clicked, drop a marker
+  map.addListener("click", (event) => {
+    const latLng = event.latLng;
+
+    // Remove previous marker if exists
+    if (marker) marker.setMap(null);
+
+    marker = new google.maps.Marker({
+      position: latLng,
+      map: map,
+    });
+
+    // Update hidden fields
+    document.getElementById("latitude").value = latLng.lat().toFixed(8);
+    document.getElementById("longitude").value = latLng.lng().toFixed(8);
+  });
+}
+</script>
+
 </body>
 </html>

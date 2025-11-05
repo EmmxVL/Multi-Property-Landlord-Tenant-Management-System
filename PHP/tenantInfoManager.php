@@ -58,27 +58,23 @@ class TenantInfoManager {
 
             $stmt = $this->db->prepare("
                 INSERT INTO tenant_info_tbl (
-                    user_id, full_name, birthdate, age, gender, phone_no, email,
+                    user_id,birthdate, age, gender, email,
                     id_type, id_number, id_photo, birth_certificate, tenant_photo,
                     occupation, employer_name, monthly_income, proof_of_income,
-                    property_id, unit_id, lease_start_date, lease_end_date, lease_status,
                     emergency_name, emergency_contact, relationship
                 ) VALUES (
-                    :user_id, :full_name, :birthdate, :age, :gender, :phone_no, :email,
+                    :user_id, :birthdate, :age, :gender, :email,
                     :id_type, :id_number, :id_photo, :birth_certificate, :tenant_photo,
                     :occupation, :employer_name, :monthly_income, :proof_of_income,
-                    :property_id, :unit_id, :lease_start_date, :lease_end_date, :lease_status,
                     :emergency_name, :emergency_contact, :relationship
                 )
             ");
 
             $stmt->execute([
                 ':user_id' => $data['user_id'],
-                ':full_name' => $data['full_name'],
                 ':birthdate' => $data['birthdate'],
                 ':age' => $age,
                 ':gender' => $data['gender'] ?? null,
-                ':phone_no' => $data['phone_no'] ?? null,
                 ':email' => $data['email'] ?? null,
                 ':id_type' => $data['id_type'] ?? null,
                 ':id_number' => $data['id_number'] ?? null,
@@ -89,11 +85,6 @@ class TenantInfoManager {
                 ':employer_name' => $data['employer_name'] ?? null,
                 ':monthly_income' => $data['monthly_income'] ?? null,
                 ':proof_of_income' => $this->uploadFile($files['proof_of_income']),
-                ':property_id' => $data['property_id'] ?? null,
-                ':unit_id' => $data['unit_id'] ?? null,
-                ':lease_start_date' => $data['lease_start_date'] ?? null,
-                ':lease_end_date' => $data['lease_end_date'] ?? null,
-                ':lease_status' => $data['lease_status'] ?? 'Pending',
                 ':emergency_name' => $data['emergency_name'] ?? null,
                 ':emergency_contact' => $data['emergency_contact'] ?? null,
                 ':relationship' => $data['relationship'] ?? null,
