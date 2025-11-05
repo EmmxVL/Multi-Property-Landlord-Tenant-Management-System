@@ -30,7 +30,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_property"])) {
     exit;
 }
 
-
 // ✅ Delete property
 if (isset($_GET["delete"])) {
     $id = (int)$_GET["delete"];
@@ -54,6 +53,12 @@ $properties = $propertyManager->getProperties();
   <link rel="stylesheet" href="../assets/styles.css">
   <script src="../assets/script.js" defer></script>
   <script src="../assets/admin.js" defer></script>
+
+  <!-- ✅ Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 320px; border-radius: 12px; z-index: 0; }
+  </style>
 </head>
 
 <?php include '../assets/header.php'; ?>
@@ -112,22 +117,22 @@ $properties = $propertyManager->getProperties();
           </div>
 
           <div>
-  <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
-  <input type="text" id="location" name="location"
-         class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
-         placeholder="e.g., Lipa City, Batangas" required>
+            <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
+            <input type="text" id="location" name="location"
+                   class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200"
+                   placeholder="e.g., Lipa City, Batangas" required>
 
-  <!-- Google Map Picker -->
-  <div class="mt-4">
-    <label class="block text-sm font-medium text-slate-700 mb-2">📍 Pin Location on Map</label>
-    <div id="map" class="w-full h-80 rounded-2xl border border-slate-300"></div>
-  </div>
+            <!-- ✅ Leaflet Map Picker -->
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-slate-700 mb-2">📍 Pin Location on Map</label>
+              <div id="map" class="w-full rounded-2xl border border-slate-300"></div>
+            </div>
 
-  <!-- Hidden Lat/Lng Inputs -->
-  <input type="hidden" id="latitude" name="latitude">
-  <input type="hidden" id="longitude" name="longitude">
-</div>
-
+            <!-- Hidden Lat/Lng Inputs -->
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+          </div>
+        </div>
 
         <div class="flex justify-end mt-6">
           <button type="submit" name="add_property"
@@ -173,7 +178,6 @@ $properties = $propertyManager->getProperties();
           </table>
         </div>
       <?php else: ?>
-        <!-- Empty State -->
         <div class="text-center py-12">
           <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +192,6 @@ $properties = $propertyManager->getProperties();
     </div>
   </main>
 
-  <!-- Footer -->
   <?php include '../assets/footer.php'; ?>
 
   <!-- SweetAlert Delete Confirmation -->
@@ -215,36 +218,35 @@ $properties = $propertyManager->getProperties();
     });
   });
   </script>
-  <!-- Google Maps API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu3r0ExYjkFi8fMdC2_Jb0Z7uYyEl0Ruc&callback=initMap" async defer></script>
-<script>
-let map, marker;
 
-function initMap() {
-  const defaultLocation = { lat: 13.940, lng: 121.163 }; // Lipa City default
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: defaultLocation,
-    zoom: 13,
+  <!-- ✅ Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+  let map = L.map('map').setView([13.940, 121.163], 13); // Default to Lipa City
+
+  // OpenStreetMap base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let marker;
+
+  // Add marker on map click
+  map.on('click', function(e) {
+    const { lat, lng } = e.latlng;
+
+    // Remove existing marker if any
+    if (marker) map.removeLayer(marker);
+
+    // Add new marker
+    marker = L.marker([lat, lng]).addTo(map);
+
+    // Update hidden input fields
+    document.getElementById('latitude').value = lat.toFixed(8);
+    document.getElementById('longitude').value = lng.toFixed(8);
   });
-
-  // When the map is clicked, drop a marker
-  map.addListener("click", (event) => {
-    const latLng = event.latLng;
-
-    // Remove previous marker if exists
-    if (marker) marker.setMap(null);
-
-    marker = new google.maps.Marker({
-      position: latLng,
-      map: map,
-    });
-
-    // Update hidden fields
-    document.getElementById("latitude").value = latLng.lat().toFixed(8);
-    document.getElementById("longitude").value = latLng.lng().toFixed(8);
-  });
-}
-</script>
+  </script>
 
 </body>
 </html>
