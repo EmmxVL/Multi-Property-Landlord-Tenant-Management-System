@@ -61,8 +61,10 @@ $recentMessages = $messageManager->getRecentMessagesByLandlord($landlord_id, 10)
   <title>Send Message</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-800">
 
+<body class="bg-gray-50 text-gray-800">
+<?php include '../assets/header.php'; ?>
+<main>
 <div class="max-w-3xl mx-auto mt-10 p-8 bg-white rounded-2xl shadow-md">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-800">📩 Send Message</h1>
@@ -115,6 +117,7 @@ $recentMessages = $messageManager->getRecentMessagesByLandlord($landlord_id, 10)
     <?php endforeach; ?>
   <?php endif; ?>
 </div>
-
+<?php include '../assets/footer.php'; ?>
+<main>
 </body>
 </html>

@@ -43,19 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === modal) hideModal();
   });
 
-  // ✅ Phone format: +63 9XX XXX XXXX
-  if (phoneInput) {
-    phoneInput.addEventListener('input', (e) => {
-      let value = e.target.value.replace(/\D/g, '');
-      if (value.length > 11) value = value.slice(0, 11);
-      if (value.length >= 7)
-        value = value.slice(0, 3) + ' ' + value.slice(3, 6) + ' ' + value.slice(6);
-      else if (value.length >= 4)
-        value = value.slice(0, 3) + ' ' + value.slice(3);
-      e.target.value = value;
-    });
-  }
-
   // ✅ Password toggle
   if (togglePassword && passwordInput && eyeIcon) {
     togglePassword.addEventListener('click', () => {

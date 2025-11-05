@@ -429,30 +429,48 @@ try {
                 </div>
 
                 <!-- Phone Number -->
-                <div>
-                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone Number
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13
-                                a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498
-                                a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    </div>
-                    <div class="absolute inset-y-0 left-10 flex items-center pointer-events-none">
-                    <span class="text-gray-500 text-sm"></span>
-                    </div>
-                    <input id="phone" name="phone" maxlength="13" required
-                        placeholder="Enter landlord's phone number"
-                        class="w-full pl-8 pr-4 py-4 border border-gray-300 rounded-xl
-                                focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                transition-all duration-200" />
-                </div>
-                <p class="text-xs text-gray-500 mt-1">Philippine mobile number format</p>
-                </div>
+<div>
+  <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
+    Phone Number
+  </label>
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13
+                  a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498
+                  a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+      </svg>
+    </div>
+<script>
+function formatPhoneNumber(input) {
+  // Remove all non-digit characters
+  let value = input.value.replace(/\D/g, "");
+
+  // Limit to 11 digits
+  value = value.substring(0, 11);
+
+  // Format as 1111 111 1111
+  if (value.length > 4 && value.length <= 7) {
+    value = value.replace(/^(\d{4})(\d+)/, "$1 $2");
+  } else if (value.length > 7) {
+    value = value.replace(/^(\d{4})(\d{3})(\d+)/, "$1 $2 $3");
+  }
+
+  input.value = value;
+}
+</script>
+    <input id="phone" name="phone" maxlength="13" required
+      placeholder="09121231234"
+      class="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl
+             focus:ring-2 focus:ring-blue-500 focus:border-transparent
+             transition-all duration-200"
+      oninput="formatPhoneNumber(this)"
+    />
+  </div>
+</div>
+
+
 
                 <!-- Password -->
                 <div>

@@ -69,23 +69,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
   </style>
 </head>
-
-<?php include 'assets/header.php'; ?>
-
-<body class="flex items-center justify-center min-h-screen text-slate-800">
-  <main class="w-full max-w-md px-6 animate-rise">
+<script>
+   document.addEventListener("DOMContentLoaded", () => {
+    const card = document.querySelector(".animate-rise");
+    if (card) {
+      card.style.animation = "none";
+      void card.offsetWidth; // Trigger reflow
+      card.style.animation = null;
+    }
+  });
+  document.addEventListener("mousemove", (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.body.style.setProperty("--x", `${x}%`);
+    document.body.style.setProperty("--y", `${y}%`);
+  });
+</script>
+<body class="font-sans text-slate-800 min-h-screen flex flex-col">
+  <!-- Header -->
+  <?php include 'assets/header.php'; ?>
+  <!-- Main Section -->
+  <main class="flex-grow flex justify-center py-12 px-4">
     <div class="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-xl rounded-3xl p-8 hover:shadow-2xl transition-all duration-300">
       
       <!-- Icon / Title -->
-      <div class="text-center mb-6">
+      <div class="text-center mb-6 flex justify-center">
         <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2v1h1a3 3 0 010 6h-6a3 3 0 010-6h1v-1zm0 0V7m0 0a5 5 0 015 5v1h1a3 3 0 110 6h-6a3 3 0 010-6h1v-1a5 5 0 015-5z"/>
           </svg>
         </div>
-        <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">Reset Your Password</h2>
-        <p class="text-slate-600 text-sm mt-2">Create a new password to secure your account.</p>
       </div>
+      <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">Reset Your Password</h2>
+      <p class="text-slate-600 text-sm mt-2">Create a new password to secure your account.</p>
 
       <!-- Error Handling -->
       <?php if (!empty($_SESSION['error'])): ?>
@@ -126,24 +142,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </div>
     </div>
   </main>
-
-  <?php include 'assets/footer.php'; ?>
-
-  <!-- Dynamic Background -->
-  <script>
-    let targetX = 50, targetY = 50, currentX = 50, currentY = 50;
-    document.addEventListener("mousemove", (e) => {
-      targetX = (e.clientX / window.innerWidth) * 100;
-      targetY = (e.clientY / window.innerHeight) * 100;
-    });
-    function animate() {
-      currentX += (targetX - currentX) * 0.08;
-      currentY += (targetY - currentY) * 0.08;
-      document.body.style.setProperty("--x", `${currentX}%`);
-      document.body.style.setProperty("--y", `${currentY}%`);
-      requestAnimationFrame(animate);
-    }
-    animate();
-  </script>
+   <?php include 'assets/footer.php'; ?>
 </body>
 </html>

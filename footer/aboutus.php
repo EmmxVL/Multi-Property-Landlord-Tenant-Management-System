@@ -1,30 +1,3 @@
-<?php
-session_start();
-
-// ✅ Check if user is logged in
-if (!isset($_SESSION['role_name'])) {
-    header("Location: ../login_page.php");
-    exit;
-}
-
-// ✅ Auto-adjust access depending on session role
-switch ($_SESSION['role_name']) {
-    case 'Landlord':
-        $dashboardLink = '../PHP/dashboard/landlord_dashboard.php';
-        break;
-    case 'Tenant':
-        $dashboardLink = '../PHP/dashboard/tenant_dashboard.php';
-        break;
-    case 'Admin':
-        $dashboardLink = '../PHP/dashboard/admin_dashboard.php';
-        break;
-    default:
-        // Fallback if something goes wrong
-        header("Location: ../login_page.php");
-        exit;
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
