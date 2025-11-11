@@ -1,148 +1,158 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+session_start();
+require_once "dbConnect.php";
 
-// 👇 Start session safely
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// 1. Check Admin Auth
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+    $_SESSION['admin_error'] = "Unauthorized action.";
+    header("Location: dashboard/admin_dashboard.php");
+    exit;
 }
 
-require_once "../PHP/dbConnect.php";
-
-class LandlordManager {
-    private PDO $db;
-
-    public function __construct(PDO $dbConnection) {
-        $this->db = $dbConnection;
-    }
-
-    /* -------------------- READ -------------------- */
-    public function getAllLandlords(): array {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT u.user_id, u.full_name, u.phone_no
-                FROM user_tbl u
-                INNER JOIN user_role_tbl ur ON u.user_id = ur.user_id
-                WHERE ur.role_id = 1
-                ORDER BY u.full_name ASC
-            ");
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            $_SESSION['admin_error'] = "Error fetching landlords: " . $e->getMessage();
-            return [];
-        }
-    }
-
-    /* -------------------- UPDATE -------------------- */
-    public function updateLandlord(int $userId, string $fullName, string $phone, ?string $password = null): bool {
-        try {
-            $phone = $this->normalizePhone($phone);
-
-            if ($password && trim($password) !== "") {
-                $hashed = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $this->db->prepare("
-                    UPDATE user_tbl 
-                    SET full_name = :full_name, phone_no = :phone, password = :password 
-                    WHERE user_id = :id
-                ");
-                $stmt->execute([
-                    ':full_name' => $fullName,
-                    ':phone' => $phone,
-                    ':password' => $hashed,
-                    ':id' => $userId
-                ]);
-            } else {
-                $stmt = $this->db->prepare("
-                    UPDATE user_tbl 
-                    SET full_name = :full_name, phone_no = :phone
-                    WHERE user_id = :id
-                ");
-                $stmt->execute([
-                    ':full_name' => $fullName,
-                    ':phone' => $phone,
-                    ':id' => $userId
-                ]);
-            }
-
-            return true;
-        } catch (PDOException $e) {
-            $_SESSION['admin_error'] = "Error updating landlord: " . $e->getMessage();
-            return false;
-        }
-    }
-
-    /* -------------------- DELETE -------------------- */
-    public function deleteLandlord(int $userId): bool {
-        try {
-            $this->db->beginTransaction();
-
-            $stmt = $this->db->prepare("DELETE FROM user_role_tbl WHERE user_id = :id");
-            $stmt->execute([':id' => $userId]);
-
-            $stmt = $this->db->prepare("DELETE FROM user_tbl WHERE user_id = :id");
-            $stmt->execute([':id' => $userId]);
-
-            $this->db->commit();
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            $_SESSION['admin_error'] = "Error deleting landlord: " . $e->getMessage();
-            return false;
-        }
-    }
-
-    /* -------------------- UTILITIES -------------------- */
-    private function normalizePhone(string $phone): string {
-        $phone = preg_replace('/[^+0-9]/', '', trim($phone));
-        if (strpos($phone, '+63') === 0) {
-            $phone = '0' . substr($phone, 3);
-        }
-        if (strlen($phone) === 10 && strpos($phone, '9') === 0) {
-            $phone = '0' . $phone;
-        }
-        return $phone;
-    }
+// 2. Check for POST request
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    header("Location: dashboard/admin_dashboard.php");
+    exit;
 }
-
-/* ==========================================================
-   🧩 ACTION HANDLER SECTION
-   Handles POST actions: update / delete
-   ========================================================== */
 
 $database = new Database();
 $db = $database->getConnection();
-$manager = new LandlordManager($db);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
-    $userId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+// 3. Get User ID and redirect path
+$userId = (int)($_POST['user_id'] ?? 0);
+if ($userId <= 0) {
+    $_SESSION['admin_error'] = "Invalid landlord ID.";
+    header("Location: dashboard/admin_dashboard.php");
+    exit;
+}
+$redirectUrl = "manageLandlord.php?user_id=" . $userId;
 
-    if ($action === 'delete' && $userId > 0) {
-        if ($manager->deleteLandlord($userId)) {
-            $_SESSION['admin_success'] = "Landlord deleted successfully!";
-        } else {
-            $_SESSION['admin_error'] = $_SESSION['admin_error'] ?? "Failed to delete landlord.";
+// --- Helper File Upload Function ---
+/**
+ * Handles a file upload, deletes the old file, and returns the new database path.
+ */
+function handleFileUpload(array $file, int $userId, string $fieldName, PDO $db): ?string {
+    // Check for upload error
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+            return null; // No new file uploaded, this is fine
         }
-        header("Location: ../PHP/dashboard/admin_dashboard.php");
-        exit;
+        throw new Exception("File upload error for {$fieldName}: " . $file['error']);
     }
 
-    if ($action === 'update' && $userId > 0) {
-        $fullName = $_POST['full_name'] ?? '';
-        $phone = $_POST['phone'] ?? '';
-        $password = $_POST['password'] ?? null;
+    // --- New file was uploaded, process it ---
 
-        if ($manager->updateLandlord($userId, $fullName, $phone, $password)) {
-            $_SESSION['admin_success'] = "Landlord updated successfully!";
-        } else {
-            $_SESSION['admin_error'] = $_SESSION['admin_error'] ?? "Failed to update landlord.";
-        }
-        header("Location: ../PHP/dashboard/admin_dashboard.php");
-        exit;
+    $uploadDir = "../uploads/landlord_docs/user_{$userId}/";
+    $dbDir = "uploads/landlord_docs/user_{$userId}/";
+
+    // 1. Get old file path from DB
+    $stmt = $db->prepare("SELECT $fieldName FROM landlord_info_tbl WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
+    $oldFilePath = $stmt->fetchColumn();
+
+    // 2. Delete old file from server
+    if ($oldFilePath && file_exists("../" . $oldFilePath)) {
+        @unlink("../" . $oldFilePath);
     }
+
+    // 3. Create new directory if needed
+    if (!is_dir($uploadDir)) {
+        if (!mkdir($uploadDir, 0755, true)) {
+            throw new Exception("Failed to create upload directory.");
+        }
+    }
+
+    // 4. Save new file
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $uniqueName = $fieldName . '_' . uniqid() . '.' . $extension;
+    $serverPath = $uploadDir . $uniqueName;
+    $databasePath = $dbDir . $uniqueName;
+
+    if (!move_uploaded_file($file['tmp_name'], $serverPath)) {
+        throw new Exception("Failed to move uploaded file for {$fieldName}.");
+    }
+
+    return $databasePath;
+}
+// --- End Helper Function ---
+
+
+try {
+    $db->beginTransaction();
+
+    // --- 1. Update user_tbl (Account Details) ---
+    $fullName = $_POST['full_name'] ?? '';
+    $phone = preg_replace('/[^+0-9]/', '', trim($_POST['phone'] ?? ''));
+    $password = $_POST['password'] ?? null;
+
+    if (empty($fullName) || empty($phone)) {
+        throw new Exception("Full Name and Phone Number are required.");
+    }
+
+    if (!empty($password)) {
+        // Update with new password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("UPDATE user_tbl SET full_name = :name, phone_no = :phone, password = :pass WHERE user_id = :id");
+        $stmt->execute([':name' => $fullName, ':phone' => $phone, ':pass' => $hashedPassword, ':id' => $userId]);
+    } else {
+        // Update without changing password
+        $stmt = $db->prepare("UPDATE user_tbl SET full_name = :name, phone_no = :phone WHERE user_id = :id");
+        $stmt->execute([':name' => $fullName, ':phone' => $phone, ':id' => $userId]);
+    }
+
+    // --- 2. Update landlord_info_tbl (Profile & Files) ---
+    
+    // Handle all file uploads first
+    $fileFields = [
+        'land_title', 'building_permit', 'business_permit', 'mayors_permit',
+        'fire_safety_permit', 'barangay_cert', 'occupancy_permit',
+        'sanitary_permit', 'dti_permit'
+    ];
+    $paths = [];
+    foreach ($fileFields as $field) {
+        if (isset($_FILES[$field]) && $_FILES[$field]['error'] != UPLOAD_ERR_NO_FILE) {
+            $paths[$field] = handleFileUpload($_FILES[$field], $userId, $field, $db);
+        }
+    }
+
+    // Build the SET part of the query
+    $setClauses = [];
+    $params = [':user_id' => $userId];
+
+    // Add text fields
+    $params[':age'] = $_POST['age'] ?: null;
+    $params[':occupation'] = $_POST['occupation'] ?: null;
+    $params[':address'] = $_POST['address'] ?: null;
+    $setClauses[] = "age = :age";
+    $setClauses[] = "occupation = :occupation";
+    $setClauses[] = "address = :address";
+
+    // Add file fields (only if a new file was uploaded)
+    foreach ($fileFields as $field) {
+        if (!empty($paths[$field])) {
+            $setClauses[] = "$field = :$field";
+            $params[":$field"] = $paths[$field];
+        }
+    }
+
+    // Execute the update query
+    if (!empty($setClauses)) {
+        $sql = "UPDATE landlord_info_tbl SET " . implode(", ", $setClauses) . " WHERE user_id = :user_id";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    // Commit changes
+    $db->commit();
+    $_SESSION['admin_success'] = "Landlord profile updated successfully!";
+
+} catch (Exception $e) {
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
+    $_SESSION['admin_error'] = "Error: " . $e->getMessage();
 }
 
-
-?>
+// Redirect back to the edit page
+header("Location: $redirectUrl");
+exit;

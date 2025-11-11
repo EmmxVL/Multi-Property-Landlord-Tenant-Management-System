@@ -5,9 +5,10 @@ error_reporting(E_ALL);
 
 // Restrict access to tenants only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant" || !isset($_SESSION["user_id"])) {
-    header("Location: ../../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
+
 
 require_once "../dbConnect.php";
 require_once "../leaseManager.php";

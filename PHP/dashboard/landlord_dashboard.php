@@ -3,14 +3,15 @@ session_start();
 
 // ✅ Restrict access to landlords only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: ../../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
+
 
 require_once "../dbConnect.php";
 require_once "../propertyManager.php";
@@ -582,7 +583,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         $senderName = $msg['sender_name'] ?? 'Landlord';
         $message = $msg['message'] ?? '(No message)';
         $dateSent = $msg['date_sent'] ?? 'N/A';
-        $status = $msg['message_status'] ?? 'Pending';
       ?>
       <div class="p-4 border border-indigo-200 rounded-2xl hover:shadow-md transition-all duration-200">
         <div class="flex justify-between items-start">
@@ -597,14 +597,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
               Date: <?= htmlspecialchars($dateSent) ?>
             </p>
           </div>
-          <span class="px-3 py-1 text-xs rounded-full font-medium
-            <?= $status === 'Pending'
-              ? 'bg-amber-100 text-amber-700'
-              : ($status === 'Completed'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-100 text-slate-600') ?>">
-            <?= htmlspecialchars($status) ?>
-          </span>
+
         </div>
       </div>
     <?php endforeach; ?>
