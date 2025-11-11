@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 05, 2025 at 04:30 AM
+-- Generation Time: Nov 11, 2025 at 06:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -24,6 +24,37 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `landlord_info_tbl`
+--
+
+CREATE TABLE `landlord_info_tbl` (
+  `user_id` int(11) NOT NULL,
+  `age` int(3) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `occupation` varchar(100) DEFAULT NULL,
+  `land_title` varchar(255) DEFAULT NULL,
+  `building_permit` varchar(255) DEFAULT NULL,
+  `business_permit` varchar(255) DEFAULT NULL,
+  `mayors_permit` varchar(255) DEFAULT NULL,
+  `fire_safety_permit` varchar(255) DEFAULT NULL,
+  `barangay_cert` varchar(255) DEFAULT NULL,
+  `occupancy_permit` varchar(255) DEFAULT NULL,
+  `sanitary_permit` varchar(255) DEFAULT NULL,
+  `dti_permit` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `landlord_info_tbl`
+--
+
+INSERT INTO `landlord_info_tbl` (`user_id`, `age`, `address`, `occupation`, `land_title`, `building_permit`, `business_permit`, `mayors_permit`, `fire_safety_permit`, `barangay_cert`, `occupancy_permit`, `sanitary_permit`, `dti_permit`, `created_at`, `updated_at`) VALUES
+(69, 20, '123 bahay', 'teach', 'uploads/landlord_docs/user_69/land_title_691370b6a3b2a.png', 'uploads/landlord_docs/user_69/building_permit_691370b6a430b.png', 'uploads/landlord_docs/user_69/business_permit_691370b6a4796.png', 'uploads/landlord_docs/user_69/mayors_permit_691370b6a4d3b.png', 'uploads/landlord_docs/user_69/fire_safety_permit_691370b6a5223.png', 'uploads/landlord_docs/user_69/barangay_cert_691370b6a5711.png', 'uploads/landlord_docs/user_69/occupancy_permit_691370b6a5bca.png', 'uploads/landlord_docs/user_69/sanitary_permit_691370b6a6016.png', 'uploads/landlord_docs/user_69/dti_permit_691370b6a63b1.png', '2025-11-11 17:21:58', '2025-11-11 17:21:58');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lease_tbl`
 --
 
@@ -36,16 +67,6 @@ CREATE TABLE `lease_tbl` (
   `user_id` int(11) NOT NULL,
   `lease_status` enum('Pending','Active','Terminated') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `lease_tbl`
---
-
-INSERT INTO `lease_tbl` (`lease_id`, `lease_start_date`, `lease_end_date`, `balance`, `unit_id`, `user_id`, `lease_status`) VALUES
-(13, '2026-10-26', '2027-10-26', 9900000.00, 13, 38, 'Active'),
-(19, '2026-10-26', '2027-10-26', 100000.00, 24, 55, 'Active'),
-(22, '2025-11-04', '2025-11-26', 10000000.00, 28, 59, 'Pending'),
-(23, '2025-11-04', '2025-11-11', 100000.00, 29, 60, 'Pending');
 
 -- --------------------------------------------------------
 
@@ -66,10 +87,8 @@ CREATE TABLE `location_tbl` (
 --
 
 INSERT INTO `location_tbl` (`location_id`, `location_name`, `address`, `latitude`, `longitude`) VALUES
-(1, 'SABANG', NULL, 13.95569003, 121.16496305),
-(2, 'SAAN DARATING', NULL, 13.94783033, 121.16087140),
-(3, 'Batangas', NULL, 13.75569223, 121.05822588),
-(4, 'Tagaytay', NULL, 14.00962957, 120.99448746);
+(5, 'Sabang', NULL, 13.94081400, 121.16343200),
+(6, 'Sabang', NULL, 13.94128336, 121.16266266);
 
 -- --------------------------------------------------------
 
@@ -104,19 +123,6 @@ CREATE TABLE `message_tbl` (
   `delivered_time` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `message_tbl`
---
-
-INSERT INTO `message_tbl` (`message_id`, `unit_id`, `user_id`, `message`, `date_sent`, `message_status`, `send_time`, `delivered_time`) VALUES
-(9, 13, 38, 'Hello', '2025-11-02 20:33:47', 'Pending', NULL, NULL),
-(11, 13, 38, 'check yo balls', '2025-11-02 21:06:10', 'Pending', NULL, NULL),
-(13, 24, 55, 'check yo balls', '2025-11-02 21:06:10', 'Pending', NULL, NULL),
-(14, 13, 38, 'check yo balls', '2025-11-02 21:07:10', 'Pending', NULL, NULL),
-(16, 24, 55, 'check yo balls', '2025-11-02 21:07:10', 'Pending', NULL, NULL),
-(17, 13, 38, 'check yo balls', '2025-11-02 21:07:31', 'Pending', NULL, NULL),
-(19, 24, 55, 'check yo balls', '2025-11-02 21:07:31', 'Pending', NULL, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -149,13 +155,6 @@ CREATE TABLE `payment_tbl` (
   `payment_status` enum('Confirmed','Ongoing','Late') DEFAULT 'Ongoing'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `payment_tbl`
---
-
-INSERT INTO `payment_tbl` (`payment_id`, `lease_id`, `user_id`, `unit_id`, `amount`, `payment_date`, `receipt_upload`, `payment_status`) VALUES
-(31, 13, 38, 13, 100000.00, '2025-10-29', '1761736240_money.jpeg', 'Confirmed');
-
 -- --------------------------------------------------------
 
 --
@@ -169,17 +168,6 @@ CREATE TABLE `property_tbl` (
   `location_id` int(11) DEFAULT NULL,
   `property_name` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `property_tbl`
---
-
-INSERT INTO `property_tbl` (`property_id`, `user_id`, `location`, `location_id`, `property_name`) VALUES
-(14, 37, 'Sabang', NULL, 'GDR-1'),
-(20, 37, 'Sabang', NULL, 'GDR-2'),
-(23, 57, NULL, 2, 'tae'),
-(24, 57, NULL, 3, 'LEMON'),
-(25, 57, NULL, 4, 'Taal');
 
 -- --------------------------------------------------------
 
@@ -230,15 +218,6 @@ CREATE TABLE `tenant_info_tbl` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `tenant_info_tbl`
---
-
-INSERT INTO `tenant_info_tbl` (`user_id`, `birthdate`, `age`, `gender`, `email`, `id_type`, `id_number`, `id_photo`, `birth_certificate`, `tenant_photo`, `occupation`, `employer_name`, `monthly_income`, `proof_of_income`, `monthly_rent`, `emergency_name`, `emergency_contact`, `relationship`, `created_at`, `updated_at`) VALUES
-(41, '2010-10-10', 15, 'Male', 'lele@gmail.com', NULL, NULL, NULL, NULL, NULL, 'Teacher', 'Monmon', 40000.00, NULL, NULL, 'Fifi', '09987987987', 'Wife', '2025-10-29 12:58:40', '2025-10-29 13:29:50'),
-(50, '2020-02-01', 5, 'Male', 'rig@gmail.com', NULL, NULL, NULL, NULL, NULL, 'Exotic Dancer', 'Bato Dela Rosa', 1000000.00, NULL, NULL, 'Bruce Wayne', '09169584751', 'Sweetheart', '2025-10-29 16:12:12', '2025-10-30 13:33:55'),
-(58, '2020-07-16', 5, 'Male', 'k@gmail.com', NULL, NULL, 'uploads/1762227232_5-45-4x_BSRGAN.png', 'uploads/1762227232_5-45-4x_BSRGAN.png', 'uploads/1762227232_5-45-4x_BSRGAN.png', 'swnsn', 'ndwind', 100000.00, 'uploads/1762227232_5-45-4x_BSRGAN.png', NULL, 'nkdwkdnwk', '10288121212', '1skns', '2025-11-04 03:33:52', '2025-11-04 03:33:52');
-
 -- --------------------------------------------------------
 
 --
@@ -252,17 +231,6 @@ CREATE TABLE `unit_tbl` (
   `unit_name` varchar(100) NOT NULL,
   `rent` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `unit_tbl`
---
-
-INSERT INTO `unit_tbl` (`unit_id`, `user_id`, `property_id`, `unit_name`, `rent`) VALUES
-(13, 37, 14, 'A-1', 100000),
-(23, 37, 20, 'A-1', 100000),
-(24, 37, 20, 'A-2', 1000000),
-(28, 57, 24, 'l1', 1000000),
-(29, 57, 25, 't1', 100000);
 
 -- --------------------------------------------------------
 
@@ -280,17 +248,8 @@ CREATE TABLE `user_role_tbl` (
 --
 
 INSERT INTO `user_role_tbl` (`role_id`, `user_id`) VALUES
-(1, 37),
-(1, 57),
-(2, 38),
-(2, 40),
-(2, 41),
-(2, 50),
-(2, 55),
-(2, 58),
-(2, 59),
-(2, 60),
-(3, 8);
+(1, 69),
+(3, 65);
 
 -- --------------------------------------------------------
 
@@ -303,6 +262,8 @@ CREATE TABLE `user_tbl` (
   `full_name` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_no` varchar(15) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `landlord_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -310,22 +271,19 @@ CREATE TABLE `user_tbl` (
 -- Dumping data for table `user_tbl`
 --
 
-INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`, `landlord_id`) VALUES
-(8, 'System Admin', '$2y$10$80F5se/rkY5LJMIGNphgM.zyp6oB/.sQKksPVBQeGM8MWfDdE3juO', '09999999999', NULL),
-(37, 'Ralph Lucero', '$2y$10$9Aqxrkpy8wIdwD3xH0XOeuV18Yl00W3TJEF6cNK.SEJlS1xoiayBm', '09664677459', NULL),
-(38, 'emm', '$2y$10$.LrtDjynRMXR4PwHP1NLoOiGTWROvB.14tXZkTfs/ZZO03TvHgrBO', '09936467748', 37),
-(40, 'laurel', '$2y$10$Xe9AAN2hS7lnM34faBSas.XkqC0YOPC9ay/Zku437/hvrVGH70S2W', '09333444555', 39),
-(41, 'lele', '$2y$10$Oh6c8GoBOZjMp.vFfhd.OeCoJus7ESxo.ursG2zN5P0cr6V05GOLK', '09444555666', 39),
-(50, 'Ryan Gosling', '$2y$10$2LPK2xt67Lg7o6ypQmVd3.LkOq444QbRMi1beUcRM4EtDJTgpHATW', '84878787872', 43),
-(55, 'Sean Martin', '$2y$10$hmPWhYGp82CU0rtTO9SUrOTw2Nngvcn0OXV8FU95ilhtSs5r0/Wh6', '09065816503', 37),
-(57, 'Filemon Mendoza', '$2y$10$wrLKGxjE39kU3HCeLqA.7eJemEUgvDIqW0xW7JmP3xjUBf6bWgGoC', '09166805211', NULL),
-(58, 'Kiko Barzaga', '$2y$10$fLkSkVquY2MwStYKH.hZ4uf9ufAJtTbw7.fDss2d5uh6LI3nA8882', '69696969696', 57),
-(59, 'John doe', '$2y$10$qzHgbMndE.HEQeuet4VnYu.2OzcuV9xPnCkDQEzcrujoX2iRms73i', '78978978978', 57),
-(60, 'zelzel', '$2y$10$COcPagGiAGRPhfjHNG92u.9/VBYnOrywJkTABd88o1aYyWWlieGNW', '87984516121', 57);
+INSERT INTO `user_tbl` (`user_id`, `full_name`, `password`, `phone_no`, `status`, `created_at`, `landlord_id`) VALUES
+(65, 'System Admin', '$2y$10$ieUWWUHxL/qWk6xE/n//k.r/fzo7jGB76HWtF9UoVLgRJANg/6L8W', '09999999999', 'approved', '2025-11-11 16:18:29', NULL),
+(69, 'Ralph Lucero', '$2y$10$0IaE31ex.Anazj3iGTEa2OdqitMuzz/G4M9Bw5gdgJqonq6rwSPSG', '09664677459', 'approved', '2025-11-11 17:21:58', NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `landlord_info_tbl`
+--
+ALTER TABLE `landlord_info_tbl`
+  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Indexes for table `lease_tbl`
@@ -422,25 +380,25 @@ ALTER TABLE `user_tbl`
 -- AUTO_INCREMENT for table `lease_tbl`
 --
 ALTER TABLE `lease_tbl`
-  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `lease_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `location_tbl`
 --
 ALTER TABLE `location_tbl`
-  MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `maintenance_tbl`
 --
 ALTER TABLE `maintenance_tbl`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `message_tbl`
 --
 ALTER TABLE `message_tbl`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `otp_tbl`
@@ -452,13 +410,13 @@ ALTER TABLE `otp_tbl`
 -- AUTO_INCREMENT for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `property_tbl`
 --
 ALTER TABLE `property_tbl`
-  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `role_tbl`
@@ -470,17 +428,23 @@ ALTER TABLE `role_tbl`
 -- AUTO_INCREMENT for table `unit_tbl`
 --
 ALTER TABLE `unit_tbl`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `user_tbl`
 --
 ALTER TABLE `user_tbl`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `landlord_info_tbl`
+--
+ALTER TABLE `landlord_info_tbl`
+  ADD CONSTRAINT `fk_landlord_info_user` FOREIGN KEY (`user_id`) REFERENCES `user_tbl` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `lease_tbl`
