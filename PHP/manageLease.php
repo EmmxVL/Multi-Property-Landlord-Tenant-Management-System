@@ -7,23 +7,22 @@ require_once "leaseManager.php";
 
 // Restrict to landlords
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: ../login_page.php");
+    header("Location: ../login_page_user.php");
     exit;
 }
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login_page.php");
+    header("Location: ../login_page_user.php");
     exit;
 }
 
 $landlordId = (int) $_SESSION["user_id"];
 
-// Create DB connection (PDO) using your Database class from dbConnect.php
+// Create DB connection (PDO)
 try {
     $database = new Database();
     $db = $database->getConnection();
 } catch (Exception $e) {
-    // If DB can't be created, show useful message
     $_SESSION['landlord_error'] = "Database connection failed: " . $e->getMessage();
     header("Location: dashboard/landlord_dashboard.php");
     exit;
@@ -37,6 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["lease_id"], $_POST["n
     $leaseId = (int) $_POST["lease_id"];
     $newStatus = $_POST["new_status"];
 
+    // *** UPDATED LOGIC ***
+    // The updateLeaseStatus function now handles setting the end date if status is 'Terminated'
     if ($leaseManager->updateLeaseStatus($leaseId, $newStatus)) {
         $_SESSION["landlord_success"] = "Lease status updated successfully.";
     } else {
@@ -131,9 +132,14 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
                     <p class="font-medium text-slate-800"><?= htmlspecialchars($lease['tenant_name']) ?></p>
                     <p class="text-xs text-slate-500"><?= htmlspecialchars($lease['tenant_phone']) ?></p>
                   </td>
-                  <td class="p-3"><?= htmlspecialchars($lease['lease_start_date']) ?></td>
-                  <td class="p-3"><?= htmlspecialchars($lease['lease_end_date']) ?></td>
-                  <td class="p-3 text-right font-semibold text-rose-600">
+                  <td class="p-3"><?= date("M d, Y", strtotime($lease['lease_start_date'])) ?></td>
+                  
+                  <!-- *** UPDATED: Show 'Present' for NULL end dates *** -->
+                  <td class="p-3">
+                    <?= $lease['lease_end_date'] ? date("M d, Y", strtotime($lease['lease_end_date'])) : '<span class="font-medium text-slate-600">Present</span>' ?>
+                  </td>
+                  
+                  <td class="p-3 text-right font-semibold <?= (float)$lease['balance'] > 0 ? 'text-rose-600' : 'text-green-600' ?>">
                     ₱<?= number_format((float)$lease['balance'], 2) ?>
                   </td>
                   <td class="p-3 text-center">

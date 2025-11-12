@@ -1,281 +1,194 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 require_once "dbConnect.php";
-require_once "AccountManager.php";
+require_once "tenantManager.php"; // Uses the new merged class
+require_once "leaseManager.php"; // Needed to check active lease status
 
-// ✅ Restrict access to Landlords only
-if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: login_page.php");
+// 1. Check Landlord Auth
+if (!isset($_SESSION["user_id"]) || !isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
+    header("Location: ../../login_page_user.php");
     exit;
 }
 
+$landlordId = (int)$_SESSION['user_id'];
 $database = new Database();
 $db = $database->getConnection();
-$manager = new AccountManager($db);
+$tenantManager = new TenantManager($db, $landlordId);
+$leaseManager = new LeaseManager($db);
 
-// ✅ Get landlord ID from session
-$landlordId = (int)($_SESSION["user_id"] ?? 0);
+// Get session messages
+$landlordSuccess = $_SESSION['landlord_success'] ?? null;
+$landlordError  = $_SESSION['landlord_error'] ?? null;
+unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
-/* -------------------- DELETE TENANT -------------------- */
-if (isset($_GET['delete'])) {
-    $tenantId = (int) $_GET['delete'];
-
-    try {
-        $stmt = $db->prepare("DELETE FROM user_tbl WHERE user_id = :id AND landlord_id = :landlord_id");
-        $stmt->execute([
-            ':id' => $tenantId,
-            ':landlord_id' => $landlordId
-        ]);
-        $_SESSION['success'] = "Tenant deleted successfully.";
-    } catch (PDOException $e) {
-        $_SESSION['error'] = "Error deleting tenant: " . $e->getMessage();
-    }
-
-    header("Location: manageTenants.php");
-    exit;
-}
-
-/* -------------------- ADD TENANT -------------------- */
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["add_tenant"])) {
-    $fullName = trim($_POST["full_name"] ?? '');
-    $phone = trim($_POST["phone_no"] ?? '');
-    $password = trim($_POST["password"] ?? '');
-
-    if (empty($fullName) || empty($phone) || empty($password)) {
-        $_SESSION["error"] = "All fields are required.";
-    } else {
-        try {
-            $manager->createTenant($landlordId, $fullName, $phone, $password);
-            $_SESSION["success"] = "Tenant added successfully.";
-        } catch (PDOException $e) {
-            $_SESSION["error"] = "Error adding tenant: " . $e->getMessage();
+try {
+    // 2. Fetch ALL approved tenants for this landlord
+    $tenants = $tenantManager->getTenantsInfo();
+    
+    // 3. Fetch all active leases to check status
+    $leases = $leaseManager->getLeasesByLandlord($landlordId);
+    $activeLeaseTenantIds = [];
+    foreach ($leases as $lease) {
+        if ($lease['lease_status'] === 'Active' && isset($lease['tenant_name'])) {
+            // We need to find the user_id associated with the tenant_name, as tenants array doesn't have name
+            // This is a bit inefficient, let's just get IDs
         }
     }
+    // Let's get active lease tenant IDs directly
+    $stmt = $db->prepare("
+        SELECT DISTINCT l.user_id 
+        FROM lease_tbl l
+        JOIN unit_tbl u ON l.unit_id = u.unit_id
+        JOIN property_tbl p ON u.property_id = p.property_id
+        WHERE l.lease_status = 'Active' AND p.user_id = :landlord_id
+    ");
+    $stmt->execute([':landlord_id' => $landlordId]);
+    $activeLeaseTenantIds = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 
-    header("Location: manageTenants.php");
-    exit;
+
+} catch (PDOException $e) {
+    $tenants = [];
+    $landlordError = "Error fetching tenants: " . $e->getMessage();
 }
-
-/* -------------------- FETCH TENANTS -------------------- */
-$stmt = $db->prepare("
-    SELECT u.user_id, u.full_name, u.phone_no
-    FROM user_tbl u
-    INNER JOIN user_role_tbl ur ON u.user_id = ur.user_id
-    WHERE ur.role_id = 2 AND u.landlord_id = :landlord_id
-    ORDER BY u.full_name ASC
-");
-$stmt->execute([":landlord_id" => $landlordId]);
-$tenants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Manage Tenants | Unitly</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="../../assets/styles.css">
-  <script src="../../assets/script.js" defer></script>
-  <script src="../../assets/landlord.js" defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Unitly - Manage Tenants</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="../../assets/styles.css">
 </head>
-
-<body class="bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 min-h-screen font-sans flex flex-col">
-  
-  <!-- Header -->
-  <?php include '../assets/header.php'; ?>
-
-  <main class="flex-grow py-10">
-    <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg border border-slate-200 transition-all duration-300 hover:shadow-2xl">
-      
-      <!-- Page Title -->
-      <div class="flex items-center gap-3 mb-8">
-        <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </div>
-        <h1 class="text-3xl font-extrabold text-blue-900">Manage Tenants</h1>
-      </div>
-
-      <!-- Add Tenant Form -->
-      <form method="POST" class="space-y-5 mb-10 bg-slate-50/70 p-6 rounded-2xl border border-slate-200">
-        <div>
-          <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
-          <input type="text" id="full_name" name="full_name"
-                 class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-                 placeholder="e.g., Juan Dela Cruz" required>
-        </div>
-
-        <div>
-          <label for="phone_no" class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-          <input type="text" id="phone_no" name="phone_no" maxlength="11"
-                 class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-                 placeholder="e.g., 09123456789" required>
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-          <div class="relative">
-            <input type="password" id="password" name="password"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-                   placeholder="Set account password" required>
-            <button type="button" id="toggle-password"
-                    class="absolute inset-y-0 right-3 flex items-center"
-                    aria-label="Toggle Password Visibility">
-              <svg class="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors" id="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5
-                         c4.478 0 8.268 2.943 9.542 7
-                         -1.274 4.057-5.064 7-9.542 7
-                         -4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex justify-end">
-          <button type="submit" name="add_tenant"
-                  class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
-            ➕ Add Tenant
-          </button>
-        </div>
-      </form>
-
-      <!-- Tenant List -->
-      <h2 class="text-2xl font-semibold text-blue-900 mb-4 flex items-center gap-2">
-        🧾 Tenant List
-      </h2>
-
-      <?php if ($tenants): ?>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-sm text-slate-700">
-            <thead class="bg-slate-100 border-b border-slate-300 text-slate-800 font-semibold">
-              <tr>
-                <th class="p-3 text-left">Full Name</th>
-                <th class="p-3 text-left">Phone Number</th>
-                <th class="p-3 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($tenants as $tenant): ?>
-                <tr class="hover:bg-blue-50 transition-all duration-150 border-b border-slate-200">
-                  <td class="p-3 font-medium text-blue-700">
-                    <a href="viewTenantInfo.php?id=<?= $tenant['user_id'] ?>" class="hover:underline">
-                      <?= htmlspecialchars($tenant["full_name"]) ?>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
+    
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-8 w-full">
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div class="flex items-center space-x-3 mb-4 sm:mb-0">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5" />
+                          <circle cx="12" cy="7" r="4" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-800">Manage My Tenants</h3>
+                        <p class="text-slate-600 text-sm">Edit or remove your current tenants.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="landlordApplications.php" class="text-sm text-purple-600 hover:underline font-medium">
+                        View Applications
                     </a>
-                  </td>
-                  <td class="p-3"><?= htmlspecialchars($tenant["phone_no"]) ?></td>
-                  <td class="p-3 text-center space-x-2">
-                    <a href="updateTenants.php?id=<?= $tenant['user_id'] ?>" 
-                       class="text-blue-600 hover:text-blue-800 font-medium hover:underline">
-                      Edit
+                    <a href="dashboard/landlord_dashboard.php" class="text-sm text-blue-600 hover:underline font-medium">
+                        &larr; Back to Dashboard
                     </a>
-                    <span class="text-slate-400">|</span>
-                    <a href="#" 
-                       class="delete-tenant text-red-600 hover:text-red-800 font-medium hover:underline"
-                       data-id="<?= $tenant['user_id'] ?>">
-                      Delete
-                    </a>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      <?php else: ?>
-        <div class="text-center py-10">
-          <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <p class="text-slate-500 font-medium text-lg mb-1">No tenants found</p>
-          <p class="text-slate-400 text-sm">Add a new tenant using the form above.</p>
-        </div>
-      <?php endif; ?>
+                </div>
+            </div>
 
-      <!-- Back -->
-      <div class="mt-8 text-center">
-        <a href="dashboard/landlord_dashboard.php"
-           class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-all duration-150">
-          ← Back to Dashboard
-        </a>
-      </div>
-    </div>
-  </main>
+            <?php if (!empty($tenants)): ?>
+            <!-- Table Section -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="tenantsTable">
+                    <thead>
+                        <tr class="border-b-2 border-slate-200 bg-slate-50">
+                            <th class="text-left py-4 px-4 font-semibold text-slate-700">Tenant Name</th>
+                            <th class="text-left py-4 px-4 font-semibold text-slate-700">Phone</th>
+                            <th class="text-left py-4 px-4 font-semibold text-slate-700">Status</th>
+                            <th class="text-center py-4 px-4 font-semibold text-slate-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tenantsTableBody">
+                    <?php foreach ($tenants as $tenant): ?>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                            <td class="py-4 px-4">
+                                <p class="font-semibold text-slate-800"><?= htmlspecialchars($tenant['full_name']); ?></p>
+                                <p class="text-xs text-slate-500">Tenant ID: <?= htmlspecialchars($tenant['user_id']); ?></p>
+                            </td>
+                            <td class="py-4 px-4 text-slate-700"><?= htmlspecialchars($tenant['phone_no']); ?></td>
+                            <td class="py-4 px-4">
+                                <?php
+                                    $isOnActiveLease = in_array($tenant['user_id'], $activeLeaseTenantIds);
+                                    if ($tenant['status'] === 'approved' && $isOnActiveLease) {
+                                        $statusText = 'Active';
+                                        $statusClass = 'bg-green-100 text-green-700';
+                                    } elseif ($tenant['status'] === 'approved') {
+                                        $statusText = 'Approved (Idle)';
+                                        $statusClass = 'bg-yellow-100 text-yellow-700';
+                                    } else {
+                                        $statusText = ucfirst($tenant['status']);
+                                        $statusClass = 'bg-gray-100 text-gray-600';
+                                    }
+                                ?>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium <?= $statusClass ?>">
+                                    <?= $statusText ?>
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <div class="flex justify-center space-x-2">
+                                    <!-- This links to the new edit_tenant.php page -->
+                                    <a href="edittenant.php?id=<?= $tenant['user_id']; ?>" class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg transition">
+                                        Edit
+                                    </a>
+                                    <!-- This uses the new delete handler -->
+                                    <button onclick="confirmDelete(<?= $tenant['user_id']; ?>, '<?= htmlspecialchars(addslashes($tenant['full_name']), ENT_QUOTES); ?>')" class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php else: ?>
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5" />
+                      <circle cx="12" cy="7" r="4" stroke-width="2" />
+                    </svg>
+                </div>
+                <h4 class="text-lg font-semibold text-slate-800 mb-2">No tenants found</h4>
+                <p class="text-slate-500">You have not approved any tenant applications yet.</p>
+                 <a href="landlord_applications.php" class="mt-4 inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    View Applications
+                 </a>
+            </div>
+            <?php endif; ?>
+        </section>
+    </main>
 
-  <!-- Footer -->
-  <?php include '../assets/footer.php'; ?>
-
-  <!-- Password Toggle -->
-  <script>
-  const togglePassword = document.getElementById("toggle-password");
-  const passwordInput = document.getElementById("password");
-  const eyeIcon = document.getElementById("eye-icon");
-
-  togglePassword.addEventListener("click", () => {
-    const isHidden = passwordInput.type === "password";
-    passwordInput.type = isHidden ? "text" : "password";
-  });
-  </script>
-
-  <!-- SweetAlert Messages -->
-  <?php if (!empty($_SESSION["success"])): ?>
-  <script>
-  Swal.fire({
-    icon: 'success',
-    title: 'Success!',
-    text: <?= json_encode($_SESSION["success"]) ?>,
-    confirmButtonColor: "#2563eb",
-    timer: 2000,
-    showConfirmButton: false
-  });
-  </script>
-  <?php unset($_SESSION["success"]); endif; ?>
-
-  <?php if (!empty($_SESSION["error"])): ?>
-  <script>
-  Swal.fire({
-    icon: 'error',
-    title: 'Error!',
-    text: <?= json_encode($_SESSION["error"]) ?>,
-    confirmButtonColor: "#2563eb"
-  });
-  </script>
-  <?php unset($_SESSION["error"]); endif; ?>
-
-  <!-- Delete Confirmation -->
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".delete-tenant").forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
-        const tenantId = link.getAttribute("data-id");
-
-        Swal.fire({
-          title: "Delete Tenant?",
-          text: "Are you sure you want to remove this tenant? This action cannot be undone.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#dc2626",
-          cancelButtonColor: "#6b7280",
-          confirmButtonText: "Yes, delete",
-          cancelButtonText: "Cancel",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = `?delete=${tenantId}`;
-          }
-        });
-      });
-    });
-  });
-  </script>
-
+    <script>
+        function confirmDelete(userId, tenantName) {
+            Swal.fire({
+                title: 'Delete Tenant?',
+                html: `Are you sure you want to permanently delete <strong>${tenantName}</strong>?<br/><br/><strong class='text-red-600'>This will delete all their info and files. This action cannot be undone.</strong><br/><br/><span class='text-sm text-gray-500'>Note: You cannot delete a tenant on an active lease.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete tenant'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Links to the new handler in the parent PHP/ folder
+                    window.location.href = `tenantUpdate.php?id=${userId}`;
+                }
+            });
+        }
+    </script>
+    <script>
+        <?php if ($landlordSuccess): ?>
+            Swal.fire({ icon: 'success', title: 'Success!', text: <?php echo json_encode($landlordSuccess); ?>, timer: 2000, showConfirmButton: false });
+        <?php elseif ($landlordError): ?>
+            Swal.fire({ icon: 'error', title: 'Error!', text: <?php echo json_encode($landlordError); ?> });
+        <?php endif; ?>
+    </script>
 </body>
 </html>

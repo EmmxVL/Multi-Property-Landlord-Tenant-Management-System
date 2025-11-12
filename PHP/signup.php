@@ -7,6 +7,28 @@ unset($_SESSION['signup_error'], $_SESSION['signup_success']);
 // To keep form data if a validation error happens
 $old = $_SESSION['old_input'] ?? [];
 unset($_SESSION['old_input']);
+
+// *** NEW: Fetch available units ***
+require_once "dbConnect.php"; 
+$availableUnits = [];
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    // Select all units that are NOT part of an active lease
+    $stmt = $db->query("
+        SELECT u.unit_id, u.unit_name, p.property_name
+        FROM unit_tbl u
+        JOIN property_tbl p ON u.property_id = p.property_id
+        WHERE u.unit_id NOT IN (
+            SELECT la.unit_id FROM lease_tbl la WHERE la.lease_status = 'Active'
+        )
+        ORDER BY p.property_name, u.unit_name
+    ");
+    $availableUnits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // If this fails, the dropdown will just be empty
+    $signupError = "Could not load available units: " . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -165,6 +187,24 @@ unset($_SESSION['old_input']);
           <!-- Tenant Fields (Dynamic) -->
           <fieldset id="tenantFields" class="form-section grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
             <legend class="text-lg font-semibold text-slate-700 mb-2 col-span-full">3. Tenant Information</legend>
+            
+            <!-- *** NEW: Unit Selection *** -->
+            <div class="col-span-full">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Which unit are you applying for?</label>
+                <select name="requested_unit_id" id="requested_unit_id" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">Select a unit...</option>
+                    <?php if (empty($availableUnits)): ?>
+                        <option value="" disabled>No units are currently available for application.</option>
+                    <?php else: ?>
+                        <?php foreach ($availableUnits as $unit): ?>
+                            <option value="<?= $unit['unit_id'] ?>" <?php if (isset($old['requested_unit_id']) && $old['requested_unit_id'] == $unit['unit_id']) echo 'selected'; ?>>
+                                <?= htmlspecialchars($unit['unit_name'] . ' (' . $unit['property_name'] . ')') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
+
             <!-- Personal Info -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Birthdate</label>
@@ -266,7 +306,6 @@ unset($_SESSION['old_input']);
         </form>
 
         <div class="text-center mt-6">
-          <!-- *** THIS IS THE FIX *** -->
           <!-- This link now points UP one level to the root folder -->
           <a href="../login_page_user.php" class="text-sm text-slate-600 hover:text-blue-700 hover:underline">
             Already have an account? Log In
@@ -282,6 +321,8 @@ unset($_SESSION['old_input']);
       const landlordFields = document.getElementById('landlordFields');
       const tenantFields = document.getElementById('tenantFields');
       const form = document.getElementById('signupForm');
+      // *** NEW: Get the unit dropdown ***
+      const unitSelect = document.getElementById('requested_unit_id');
 
       function toggleSections() {
         const selectedRole = document.querySelector('input[name="role"]:checked');
@@ -294,14 +335,32 @@ unset($_SESSION['old_input']);
         if (selectedRole.value === 'landlord') {
           landlordFields.style.display = 'grid';
           tenantFields.style.display = 'none';
-          // Set required for landlord fields
-          landlordFields.querySelectorAll('input[type="file"]').forEach(el => el.required = false); // Files are optional
-          landlordFields.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => el.required = true);
+          
+          // Set required for landlord fields (except files)
+          landlordFields.querySelectorAll('input[type="file"]').forEach(el => el.required = false);
+          landlordFields.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => {
+            const label = el.closest('div').querySelector('label');
+            const isOptional = label && label.innerText.includes('(Optional)');
+            el.required = !isOptional;
+          });
+
+          // *** NEW: Un-require the unit select ***
+          if (unitSelect) unitSelect.required = false;
+          // Un-require tenant fields
+          tenantFields.querySelectorAll('input, select').forEach(el => el.required = false);
+
+
         } else if (selectedRole.value === 'tenant') {
           landlordFields.style.display = 'none';
           tenantFields.style.display = 'grid';
+          // *** NEW: Require the unit select ***
+          if (unitSelect) unitSelect.required = true;
+          
           // Set required for tenant fields (except optionals)
           tenantFields.querySelectorAll('input, select').forEach(el => {
+            // Don't override the unit select we just set
+            if (el.id === 'requested_unit_id') return;
+            
             const label = el.closest('div').querySelector('label');
             const isOptional = label && label.innerText.includes('(Optional)');
             el.required = !isOptional;
@@ -312,6 +371,8 @@ unset($_SESSION['old_input']);
              const isOptional = label && label.innerText.includes('(Optional)');
              el.required = !isOptional;
           });
+          // Unset required for landlord fields
+          landlordFields.querySelectorAll('input, select').forEach(el => el.required = false);
         }
       }
 
