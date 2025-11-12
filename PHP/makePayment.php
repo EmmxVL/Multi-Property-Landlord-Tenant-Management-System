@@ -3,7 +3,7 @@ session_start();
 
 // Restrict access to tenants only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Tenant" || !isset($_SESSION["user_id"])) {
-    header("Location: ../../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
 
@@ -30,49 +30,14 @@ if (!$lease) {
     exit;
 }
 
-// Inside the POST handler
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $amount = floatval($_POST['amount'] ?? 0);
-        $receipt = $_FILES['receipt'] ?? null;
-
-        // Fetch current lease balance again
-        $leaseBalance = (float)$lease['balance'];
-
-        if ($amount <= 0) {
-            $_SESSION['tenant_error'] = "Please enter a valid amount.";
-        } elseif ($amount > $leaseBalance) {
-            $_SESSION['tenant_error'] = "Payment exceeds the outstanding balance of ₱" . number_format($leaseBalance, 2);
-        } elseif (!$receipt || $receipt['error'] !== UPLOAD_ERR_OK) {
-            $_SESSION['tenant_error'] = "Please upload a valid receipt.";
-        } else {
-        }
-
-        // Upload receipt
-        $uploadDir = "uploads/";
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-
-        $filename = time() . "_" . basename($receipt['name']);
-        $targetFile = $uploadDir . $filename;
-
-        if (move_uploaded_file($receipt['tmp_name'], $targetFile)) {
-            // Add payment
-            $success = $paymentManager->addPayment($leaseId, $userId, $amount, $filename);
-
-            if ($success) {
-                $_SESSION['tenant_success'] = "Payment submitted successfully. Awaiting confirmation.";
-                header("Location: dashboard/tenant_dashboard.php");
-                exit;
-            } else {
-                $_SESSION['tenant_error'] = $_SESSION['tenant_error'] ?? "Failed to save payment. Try again.";
-            }
-        } else {
-            $_SESSION['tenant_error'] = "Failed to upload receipt. Try again.";
-        }
-    }
+// Get tenant info
+$stmt = $db->prepare("SELECT full_name FROM user_tbl WHERE user_id = :user_id");
+$stmt->execute([':user_id' => $userId]);
+$tenantName = $stmt->fetchColumn();
 
 
 $tenantSuccess = $_SESSION['tenant_success'] ?? null;
-$tenantError   = $_SESSION['tenant_error'] ?? null;
+$tenantError  = $_SESSION['tenant_error'] ?? null;
 unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
 ?>
 
@@ -84,6 +49,27 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
     <title>Unitly - Make Payment</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="../assets/styles.css">
+    <style>
+        /* Custom styles for file input */
+        #uploadArea {
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        #uploadArea.drag-over {
+            background-color: #f0f9ff;
+            border-color: #2563eb;
+        }
+        /* Hide the default file input */
+        #receipt {
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-sans flex flex-col">
 
@@ -119,63 +105,48 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         </h2>
       </div>
 
-      <form method="POST" enctype="multipart/form-data" id="paymentForm" class="space-y-6">
+      <!-- *** THIS FORM NOW POINTS TO handle_payment.php *** -->
+      <form method="POST" action="handlePayment.php" enctype="multipart/form-data" id="paymentForm" class="space-y-6">
+        <input type="hidden" name="lease_id" value="<?= $leaseId ?>">
+        <input type="hidden" name="tenant_id" value="<?= $userId ?>">
+        <input type="hidden" name="unit_id" value="<?= $lease['unit_id'] ?>">
+        
         <!-- Amount -->
         <div>
           <label for="amount" class="block text-sm font-semibold text-slate-700 mb-2">Payment Amount</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-500 text-lg">₱</span>
-            <input type="number" step="0.01" min="0" name="amount" id="amount" required
+            <input type="number" step="0.01" min="0.01" name="amount" id="amount" required
                    class="w-full pl-8 pr-4 py-4 text-lg border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                   placeholder="0.00">
+                   placeholder="0.00"
+                   max="<?= (float)$lease['balance'] > 0 ? (float)$lease['balance'] : '' ?>">
           </div>
           <div class="mt-2 flex justify-between text-xs text-slate-500">
-            <p>Enter the amount you want to pay</p>
-          </div>
-        </div>
-
-        <!-- Payment Method -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-3">Payment Method</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <?php
-            $methods = [
-              ['bank_transfer', 'Bank Transfer', 'blue', 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
-              ['gcash', 'GCash', 'green', 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z'],
-              ['cash', 'Cash', 'yellow', 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z']
-            ];
-            foreach ($methods as $i => $m): ?>
-              <label class="relative flex items-center p-4 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="radio" name="payment_method" value="<?= $m[0] ?>" class="sr-only" <?= $i === 0 ? 'checked' : '' ?>>
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-<?= $m[2] ?>-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-<?= $m[2] ?>-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= $m[3] ?>"/>
-                    </svg>
-                  </div>
-                  <span class="text-sm font-medium text-slate-700"><?= $m[1] ?></span>
-                </div>
-                <div class="absolute inset-0 border-2 border-green-500 rounded-lg opacity-0 payment-method-selected"></div>
-              </label>
-            <?php endforeach; ?>
+            <p>Enter the amount you want to pay.</p>
+            <p>Max: <span class="font-medium">₱<?= number_format($lease['balance'], 2) ?></span></p>
           </div>
         </div>
 
         <!-- Receipt Upload -->
         <div>
-          <label for="receipt" class="block text-sm font-semibold text-slate-700 mb-2">Upload Receipt</label>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Upload Receipt (Required)</label>
           
-          <div id="uploadArea" class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
-            <input type="file" name="receipt" id="receipt" accept=".jpg,.jpeg,.png,.pdf" required class="border-slate-300 ">
-            <div id="uploadContent">
+          <div id="uploadArea" class="relative border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
+            <!-- The actual file input is hidden but covers the area -->
+            <input type="file" name="receipt" id="receipt" accept=".jpg,.jpeg,.png,.pdf" required
+                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            
+            <!-- This is the content shown to the user -->
+            <div id="uploadContent" class="">
               <svg class="w-12 h-12 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3-3 3m3-3v12"/>
               </svg>
-              
               <p class="text-slate-600 font-medium mb-2">Click to upload or drag and drop</p>
               <p class="text-slate-400 text-sm">PNG, JPG, PDF up to 10MB</p>
             </div>
+            
+            <!-- This is shown after a file is selected -->
             <div id="filePreview" class="hidden flex items-center justify-center space-x-3">
               <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -218,8 +189,9 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         <div class="flex justify-between border-b border-slate-100 py-2">
           <span class="text-slate-600 text-sm">Lease Period</span>
           <div class="text-right">
+             <!-- Handle open-ended leases -->
             <div class="font-semibold text-sm"><?= date('M d, Y', strtotime($lease['lease_start_date'])) ?></div>
-            <div class="text-xs text-slate-500">to <?= date('M d, Y', strtotime($lease['lease_end_date'])) ?></div>
+            <div class="text-xs text-slate-500">to <?= $lease['lease_end_date'] ? date('M d, Y', strtotime($lease['lease_end_date'])) : 'Present' ?></div>
           </div>
         </div>
         <div class="flex justify-between py-2">
@@ -235,10 +207,12 @@ unset($_SESSION['tenant_success'], $_SESSION['tenant_error']);
         <div class="flex justify-between"><span>Remaining Balance</span><span id="remainingBalance" class="font-semibold">₱<?= number_format($lease['balance'], 2) ?></span></div>
         <div class="pt-3 border-t border-green-200 flex justify-between">
           <span class="font-medium text-slate-600">Status After Payment</span>
-          <span id="paymentStatus" class="font-bold text-green-600">Partial Payment</span>
+          <span id="paymentStatus" class="font-bold text-green-600">--</span>
         </div>
       </div>
-            </main>
+    </div>
+  </div>
+</main>
 
 <!-- Footer -->
 <?php include '../assets/footer.php'; ?>
@@ -249,6 +223,86 @@ Swal.fire({ icon: 'success', title: 'Success!', text: <?= json_encode($tenantSuc
 <?php elseif ($tenantError): ?>
 Swal.fire({ icon: 'error', title: 'Error', text: <?= json_encode($tenantError) ?>, confirmButtonText: 'Okay' });
 <?php endif; ?>
+
+// --- Drag and Drop File Upload ---
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('receipt');
+const uploadContent = document.getElementById('uploadContent');
+const filePreview = document.getElementById('filePreview');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const removeFile = document.getElementById('removeFile');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+});
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+});
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFilePreview();
+    }
+});
+fileInput.addEventListener('change', updateFilePreview);
+
+removeFile.addEventListener('click', () => {
+    fileInput.value = ''; // Clear the file input
+    uploadContent.classList.remove('hidden');
+    filePreview.classList.add('hidden');
+});
+
+function updateFilePreview() {
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileName.textContent = file.name;
+        fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        uploadContent.classList.add('hidden');
+        filePreview.classList.remove('hidden');
+    } else {
+        uploadContent.classList.remove('hidden');
+        filePreview.classList.add('hidden');
+    }
+}
+
+// --- Payment Summary ---
+const amountInput = document.getElementById('amount');
+const summaryAmount = document.getElementById('summaryAmount');
+const remainingBalance = document.getElementById('remainingBalance');
+const paymentStatus = document.getElementById('paymentStatus');
+const leaseBalance = <?= (float)$lease['balance'] ?>;
+
+amountInput.addEventListener('input', () => {
+    let amount = parseFloat(amountInput.value) || 0;
+    if (amount > leaseBalance) {
+        amount = leaseBalance;
+        amountInput.value = leaseBalance.toFixed(2);
+    }
+    
+    const newBalance = leaseBalance - amount;
+    
+    summaryAmount.textContent = '₱' + amount.toFixed(2);
+    remainingBalance.textContent = '₱' + newBalance.toFixed(2);
+    
+    if (newBalance <= 0 && amount > 0) {
+        paymentStatus.textContent = 'Paid in Full';
+        paymentStatus.classList.remove('text-yellow-600');
+        paymentStatus.classList.add('text-green-600');
+    } else if (amount > 0) {
+        paymentStatus.textContent = 'Partial Payment';
+        paymentStatus.classList.remove('text-green-600');
+        paymentStatus.classList.add('text-yellow-600');
+    } else {
+        paymentStatus.textContent = '--';
+        paymentStatus.classList.remove('text-yellow-600');
+        paymentStatus.classList.add('text-green-600');
+    }
+});
+
 </script>
 
 </body>

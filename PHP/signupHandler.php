@@ -78,7 +78,7 @@ function normalizePhone(string $phone): string {
 
 // --- Main Script Logic ---
 
-
+// The file is in the SAME folder (PHP/), so we don't need '../'
 $errorRedirect = 'signup.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -89,6 +89,8 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 // Save POST data to session in case of error
 $_SESSION['old_input'] = $_POST;
 
+// Initialize $db outside try so it's available in catch
+$db = null;
 try {
     $database = new Database();
     $db = $database->getConnection();
@@ -106,6 +108,11 @@ try {
 
     if ($password !== $confirmPassword) {
         throw new Exception("Passwords do not match.");
+    }
+
+    // *** NEW: Validate unit selection if role is tenant ***
+    if ($role === 'tenant' && empty($_POST['requested_unit_id'])) {
+        throw new Exception("Please select a unit you are applying for.");
     }
     
     // 2. Check if phone number already exists
@@ -147,7 +154,6 @@ try {
         $uploadDir = "../uploads/landlord_docs/user_{$userId}/";
         $dbDir = "uploads/landlord_docs/user_{$userId}/";
         
-        // Handle all file uploads
         $paths = [];
         $fileFields = [
             'land_title', 'building_permit', 'business_permit', 'mayors_permit',
@@ -213,19 +219,21 @@ try {
         }
 
         // Insert into tenant_info_tbl
+        // *** UPDATED: Added requested_unit_id ***
         $stmt = $db->prepare("
             INSERT INTO tenant_info_tbl (
-                user_id, birthdate, age, gender, email, id_type, id_number, id_photo,
+                user_id, requested_unit_id, birthdate, age, gender, email, id_type, id_number, id_photo,
                 birth_certificate, tenant_photo, occupation, employer_name, monthly_income,
                 proof_of_income, monthly_rent, emergency_name, emergency_contact, relationship
             ) VALUES (
-                :user_id, :birthdate, :age, :gender, :email, :id_type, :id_number, :id_photo,
+                :user_id, :requested_unit_id, :birthdate, :age, :gender, :email, :id_type, :id_number, :id_photo,
                 :birth_certificate, :tenant_photo, :occupation, :employer_name, :monthly_income,
                 :proof_of_income, :monthly_rent, :emergency_name, :emergency_contact, :relationship
             )
         ");
         $stmt->execute([
             ':user_id' => $userId,
+            ':requested_unit_id' => $_POST['requested_unit_id'] ?: null, // *** NEW ***
             ':birthdate' => $_POST['tenant_birthdate'] ?: null,
             ':age' => $age,
             ':gender' => $_POST['tenant_gender'] ?: null,
