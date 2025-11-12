@@ -49,9 +49,11 @@ try {
 
     // 4️⃣ *** NEW: Pending Applications ***
     $stmt = $db->query("
-        SELECT COUNT(*) AS pending_applications
-        FROM user_tbl
-        WHERE status = 'pending'
+      SELECT COUNT(*) AS pending_applications
+      FROM user_role_tbl ur
+      JOIN user_tbl u ON ur.user_id = u.user_id
+      WHERE ur.role_id = 1
+        AND u.status = 'pending';
     ");
     $pendingApplications = $stmt->fetch(PDO::FETCH_ASSOC)['pending_applications'] ?? 0;
 

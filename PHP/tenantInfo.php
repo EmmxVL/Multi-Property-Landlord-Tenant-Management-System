@@ -203,8 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         <label class="block text-sm font-medium text-slate-600 mb-1"><?= $label ?></label>
         <?php if(!empty($tenantInfo[$field])): ?>
           <div class="mb-2">
-            <a href="<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
-              <img src="<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded-xl shadow-sm hover:shadow-md transition">
+            <a href="/<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
+              <img src="/<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded-xl shadow-sm hover:shadow-md transition">
             </a>
           </div>
         <?php else: ?>

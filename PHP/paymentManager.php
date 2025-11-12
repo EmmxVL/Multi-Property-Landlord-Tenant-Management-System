@@ -7,24 +7,56 @@ class PaymentManager {
     }
 
     /**
-     * *** NEW FUNCTION ***
      * (For Landlord: addLease.php)
      * Creates a new payment record in the database.
      */
+
+        /**
+     * (For Landlord Dashboard)
+     * Gets all payments under this landlord (across all properties and leases).
+     */
+    public function getPaymentsByLandlord(int $landlordId): array {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    p.payment_id,
+                    p.amount,
+                    p.payment_status AS status,
+                    p.payment_date,
+                    p.balance_after_payment,
+                    l.lease_id,
+                    u.full_name AS tenant_name,
+                    un.unit_name,
+                    pr.property_name
+                FROM payment_tbl p
+                INNER JOIN lease_tbl l ON p.lease_id = l.lease_id
+                INNER JOIN user_tbl u ON l.user_id = u.user_id
+                INNER JOIN unit_tbl un ON l.unit_id = un.unit_id
+                INNER JOIN property_tbl pr ON un.property_id = pr.property_id
+                WHERE pr.user_id = :landlord_id
+                ORDER BY p.payment_date DESC
+            ");
+            $stmt->execute([':landlord_id' => $landlordId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $_SESSION['landlord_error'] = "Database error fetching landlord payments: " . $e->getMessage();
+            return [];
+        }
+    }
+
     public function createPayment(int $leaseId, float $amount, string $paymentDate, string $status, ?string $receiptPath, string $notes, float $balanceAfterPayment): bool {
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO payment_tbl (
                     lease_id, amount, payment_date, payment_status, 
-                    receipt_upload, notes, balance_after_payment,
-                    user_id 
+                    receipt_upload, notes, balance_after_payment, user_id
                 ) VALUES (
-                    :lease_id, :amount, :payment_date, :status, 
+                    :lease_id, :amount, :payment_date, :status,
                     :receipt, :notes, :balance_after,
-                    (SELECT user_id FROM lease_tbl WHERE lease_id = :lease_id)
+                    (SELECT user_id FROM lease_tbl WHERE lease_id = :lease_id LIMIT 1)
                 )
             ");
-            
+
             return $stmt->execute([
                 ':lease_id' => $leaseId,
                 ':amount' => $amount,
@@ -42,9 +74,36 @@ class PaymentManager {
 
     /**
      * (For Tenant Dashboard)
-     * Gets all payments for a specific tenant and calculates running balance.
+     * Gets all payments for a specific tenant (including Pending tenants).
      */
-    public function getPaymentsByTenant(int $tenantId): array {
+    public function getAllTenantPaymentsByLandlord(int $landlordId): array {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT p.payment_id, p.payment_date, p.amount, p.payment_status, 
+                       p.receipt_upload, p.notes, p.balance_after_payment,
+                       u.full_name AS tenant_name,
+                       l.lease_id, l.unit_id,
+                       (SELECT unit_name FROM unit_tbl WHERE unit_id = l.unit_id) AS unit_name
+                FROM payment_tbl p
+                INNER JOIN lease_tbl l ON p.lease_id = l.lease_id
+                INNER JOIN user_tbl u ON l.user_id = u.user_id
+                WHERE l.landlord_id = :landlord_id
+                  AND p.payment_status = 'Confirmed'
+                ORDER BY p.payment_date ASC, p.payment_id ASC
+            ");
+            $stmt->execute([':landlord_id' => $landlordId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $_SESSION['landlord_error'] = "Database error fetching tenant payments: " . $e->getMessage();
+            return [];
+        }
+    }
+
+    /**
+     * (For Tenant Dashboard)
+     * Gets all payments by a specific tenant.
+     */
+       public function getPaymentsByTenant(int $tenantId): array {
         $stmt = $this->db->prepare("
             SELECT p.payment_id, p.payment_date, p.payment_status AS status, p.receipt_upload,
                    l.lease_id, l.unit_id, u.full_name AS tenant_name,
@@ -68,7 +127,7 @@ class PaymentManager {
      * (For Tenant Dashboard)
      * Gets the next lease with a balance due.
      */
-    public function getNextDuePayment(int $tenantId): ?array {
+     public function getNextDuePayment(int $tenantId): ?array {
         $stmt = $this->db->prepare("
             SELECT l.lease_id, l.unit_id, l.lease_end_date, l.balance, 
                    (SELECT unit_name FROM unit_tbl WHERE unit_id = l.unit_id) AS unit_name
@@ -84,10 +143,6 @@ class PaymentManager {
         return $result ?: null;
     }
 
-    /**
-     * (For Tenant Dashboard)
-     * A tenant submits a new payment.
-     */
     public function addPayment(int $leaseId, int $tenantId, float $amount, ?string $receiptUpload = null, string $status = 'Ongoing'): bool {
         try {
             $this->db->beginTransaction();

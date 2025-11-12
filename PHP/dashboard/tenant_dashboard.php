@@ -404,7 +404,7 @@ if (!empty($leases)) {
                                             </td>
                                             <td class="py-4 px-4 text-center">
                                                 <?php if (!empty($payment['receipt_upload'])): ?>
-                                                    <a href="../<?= htmlspecialchars($payment['receipt_upload']) ?>" target="_blank"
+                                                    <a href="/<?= htmlspecialchars(str_replace('\\', '/', $payment['receipt_upload'])) ?>" target="_blank"
                                                        class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-lg">
                                                         View
                                                     </a>

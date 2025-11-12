@@ -70,6 +70,20 @@ foreach ($leases as $lease) {
 $landlordSuccess = $_SESSION['landlord_success'] ?? null;
 $landlordError = $_SESSION['landlord_error'] ?? null;
 unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
+
+try {
+    $getPaymentsByTenant = $paymentManager->getPaymentsByLandlord($userId);
+    $totalEarnings = 0;
+
+    foreach ($getPaymentsByTenant as $payment) {
+        if (!empty($payment['status']) && strtolower($payment['status']) === 'confirmed') {
+            $totalEarnings += (float)$payment['amount'];
+        }
+    }
+} catch (Exception $e) {
+    $getPaymentsByTenant = [];
+    $totalEarnings = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,6 +106,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
   <div class="flex justify-between items-center mb-8">
     <h2 class="text-3xl font-semibold text-slate-800 tracking-tight">Landlord Dashboard Overview</h2>
   </div>
+  
   <!-- Quick Stats -->
       
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
@@ -169,11 +184,11 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <div class="flex items-center justify-between">
         <div>
             <p class="text-slate-600 text-sm font-medium">Total Cash Earned</p>
-            <p class="text-3xl font-bold text-slate-800 mt-1">
-                ₱<?= isset($totalEarnings) ? number_format($totalEarnings, 2) : '0.00' ?>
+           <p class="text-3xl font-bold text-slate-800 mt-1">
+                ₱<?= number_format($totalEarnings, 2) ?>
             </p>
             <p class="text-xs text-purple-600 mt-1">
-                From confirmed tenant payments
+                From confirmed tenants payments (<?= count($getPaymentsByTenant) ?> total records)
             </p>
         </div>
 
@@ -185,8 +200,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         </div>
     </div>
 </div>
-
-
 
 
 </div>
