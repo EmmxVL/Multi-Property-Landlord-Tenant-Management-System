@@ -111,117 +111,110 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         </script>
       <?php endif; ?>
 
-      <!-- FORM -->
-      <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<form class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        <!-- LEFT COLUMN -->
-        <div class="space-y-5">
-          <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Basic Information</h2>
+  <!-- LEFT COLUMN -->
+  <div class="space-y-5">
+    <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Basic Information</h2>
 
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
-            <input type="text" name="full_name" value="<?= htmlspecialchars($tenantInfo['full_name'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder:text-slate-400">
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['full_name'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Birthdate</label>
+      <input type="date" value="<?= htmlspecialchars($tenantInfo['birthdate'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['gender'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+      <input type="email" value="<?= htmlspecialchars($tenantInfo['email'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Occupation</h2>
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Occupation</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['occupation'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Employer Name</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['employer_name'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Monthly Income</label>
+      <input type="text" value="₱<?= htmlspecialchars(number_format((float)($tenantInfo['monthly_income'] ?? 0), 2)) ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="space-y-5">
+    <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Emergency Contact</h2>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Name</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Relationship</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['relationship'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
+      <input type="text" value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>" readonly
+             class="w-full border border-slate-300 rounded-xl px-4 py-2 bg-gray-100">
+    </div>
+
+    <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Documents</h2>
+    <?php
+    $fileFields = [
+      'id_photo' => 'ID Photo',
+      'birth_certificate' => 'Birth Certificate',
+      'tenant_photo' => 'Tenant Photo',
+      'proof_of_income' => 'Proof of Income'
+    ];
+    foreach ($fileFields as $field => $label):
+    ?>
+      <div>
+        <label class="block text-sm font-medium text-slate-600 mb-1"><?= $label ?></label>
+        <?php if(!empty($tenantInfo[$field])): ?>
+          <div class="mb-2">
+            <a href="/<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
+              <img src="/<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded-xl shadow-sm hover:shadow-md transition">
+            </a>
           </div>
+        <?php else: ?>
+          <p class="text-sm text-gray-500 italic">No <?= strtolower($label) ?> uploaded.</p>
+        <?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</form>
 
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Birthdate</label>
-            <input type="date" name="birthdate" value="<?= htmlspecialchars($tenantInfo['birthdate'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
-            <select name="gender" class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="">Select Gender</option>
-              <option value="Male" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Male') ? 'selected' : '' ?>>Male</option>
-              <option value="Female" <?= (isset($tenantInfo['gender']) && $tenantInfo['gender'] === 'Female') ? 'selected' : '' ?>>Female</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
-            <input type="text" name="phone_no" maxlength="11"
-                   value="<?= htmlspecialchars($tenantInfo['phone_no'] ?? '') ?>"
-                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
-            <input type="email" name="email" value="<?= htmlspecialchars($tenantInfo['email'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-
-          <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Occupation</h2>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Occupation</label>
-            <input type="text" name="occupation" value="<?= htmlspecialchars($tenantInfo['occupation'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Employer Name</label>
-            <input type="text" name="employer_name" value="<?= htmlspecialchars($tenantInfo['employer_name'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Monthly Income</label>
-            <input type="number" step="0.01" name="monthly_income" value="<?= htmlspecialchars($tenantInfo['monthly_income'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div class="space-y-5">
-          <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Emergency Contact</h2>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Name</label>
-            <input type="text" name="emergency_name" value="<?= htmlspecialchars($tenantInfo['emergency_name'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Relationship</label>
-            <input type="text" name="relationship" value="<?= htmlspecialchars($tenantInfo['relationship'] ?? '') ?>"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">Contact Number</label>
-            <input type="text" name="emergency_contact" maxlength="11"
-                   value="<?= htmlspecialchars($tenantInfo['emergency_contact'] ?? '') ?>"
-                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
-                   class="w-full border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
-          </div>
-
-          <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 mt-6">Documents</h2>
-          <?php
-          $fileFields = [
-            'id_photo' => 'ID Photo',
-            'birth_certificate' => 'Birth Certificate',
-            'tenant_photo' => 'Tenant Photo',
-            'proof_of_income' => 'Proof of Income'
-          ];
-          foreach ($fileFields as $field => $label):
-          ?>
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1"><?= $label ?></label>
-            <?php if(!empty($tenantInfo[$field])): ?>
-              <div class="mb-2 flex items-center gap-3">
-                <a href="<?= htmlspecialchars($tenantInfo[$field]) ?>" target="_blank">
-                  <img src="<?= htmlspecialchars($tenantInfo[$field]) ?>" width="100" alt="<?= $label ?>" class="border rounded-xl shadow-sm hover:shadow-md transition">
-                </a>
-                <a href="?delete_file=<?= $field ?>" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs">Delete</a>
-              </div>
-            <?php endif; ?>
-            <input type="file" name="<?= $field ?>"
-                   class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
-          </div>
-          <?php endforeach; ?>
-        </div>
 
         <!-- BUTTONS -->
         <div class="lg:col-span-2 flex justify-between pt-8">
@@ -229,12 +222,9 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
              class="bg-slate-500 hover:bg-slate-600 text-white px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition">
             ← Back to Dashboard
           </a>
-          <button type="submit"
-                  class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition">
-            💾 Save Information
-          </button>
+      
         </div>
-      </form>
+ 
     </div>
   </main>
 

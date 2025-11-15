@@ -3,20 +3,21 @@ session_start();
 
 // ✅ Restrict access to landlords only
 if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "Landlord") {
-    header("Location: ../../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login_page.php");
+    header("Location: ../../login_page_user.php");
     exit;
 }
 
+
 require_once "../dbConnect.php";
 require_once "../propertyManager.php";
-require_once "../tenantManager.php";
+require_once "../tenantManager.php"; // <-- This now includes your new, merged class
 require_once "../leaseManager.php";
-require_once "../paymentManager.php"; // new: for payment data
+require_once "../paymentManager.php";
 require_once "../messageManager.php";
 
 
@@ -27,17 +28,36 @@ $db = $database->getConnection();
 // ✅ Initialize managers
 $userId = (int) $_SESSION["user_id"];
 $propertyManager = new PropertyManager($db, $userId);
-$tenantManager = new TenantManager($db, $userId);
+$tenantManager = new TenantManager($db, $userId); // <-- This now uses the new, merged class
 $leaseManager = new LeaseManager($db);
 $paymentManager = new PaymentManager($db);
 $messageManager = new MessageManager($db);
 
 // ✅ Fetch landlord's properties, tenants & leases
 $properties = $propertyManager->getProperties();
-$tenants = $tenantManager->getTenantsinfo();
+$tenants = $tenantManager->getTenantsInfo(); // <-- This uses the correct function from your new class
 $leases = $leaseManager->getLeasesByLandlord($userId);
 $recentMessages = $messageManager->getRecentMessagesByLandlord($userId);
 
+// *** NEW: Get pending tenant applications for this landlord ***
+try {
+    $stmt = $db->prepare("
+        SELECT COUNT(u.user_id)
+        FROM user_tbl u
+        JOIN user_role_tbl ur ON u.user_id = ur.user_id
+        JOIN tenant_info_tbl ti ON u.user_id = ti.user_id
+        JOIN unit_tbl ut ON ti.requested_unit_id = ut.unit_id
+        JOIN property_tbl p ON ut.property_id = p.property_id
+        WHERE u.status = 'pending'
+          AND ur.role_id = 2
+          AND p.user_id = :landlord_id
+    ");
+    $stmt->execute([':landlord_id' => $userId]);
+    $pendingTenantApps = $stmt->fetchColumn() ?? 0;
+} catch (PDOException $e) {
+    $pendingTenantApps = 0;
+    // You might want to log this error
+}
 
 
 // Fetch payments for each lease
@@ -50,6 +70,20 @@ foreach ($leases as $lease) {
 $landlordSuccess = $_SESSION['landlord_success'] ?? null;
 $landlordError = $_SESSION['landlord_error'] ?? null;
 unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
+
+try {
+    $getPaymentsByTenant = $paymentManager->getPaymentsByLandlord($userId);
+    $totalEarnings = 0;
+
+    foreach ($getPaymentsByTenant as $payment) {
+        if (!empty($payment['status']) && strtolower($payment['status']) === 'confirmed') {
+            $totalEarnings += (float)$payment['amount'];
+        }
+    }
+} catch (Exception $e) {
+    $getPaymentsByTenant = [];
+    $totalEarnings = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,25 +101,26 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 
 <?php include '../../assets/header.php'; ?>
 
-<main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full bg-slate-50">
+<main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
   <!-- Header -->
   <div class="flex justify-between items-center mb-8">
     <h2 class="text-3xl font-semibold text-slate-800 tracking-tight">Landlord Dashboard Overview</h2>
   </div>
+  
   <!-- Quick Stats -->
-     
+      
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
 
     <!-- Number of Properties -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-slate-600 text-sm font-medium">Total Properties Owned</p>
+            <p class="text-slate-600 text-sm font-medium">Total Properties</p>
             <p class="text-3xl font-bold text-slate-800 mt-1">
                 <?= !empty($properties) ? count($properties) : 0 ?>
             </p>
             <p class="text-xs text-slate-600 mt-1">
-                <?= !empty($properties) ? 'Active properties currently managed.' : 'No properties added yet.' ?>
+                Active properties managed.
             </p>
         </div>
         <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -102,12 +137,12 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-slate-600 text-sm font-medium">Total Tenants</p>
+            <p class="text-slate-600 text-sm font-medium">Active Tenants</p>
             <p class="text-3xl font-bold text-slate-800 mt-1">
                 <?= !empty($tenants) ? count($tenants) : 0 ?>
             </p>
             <p class="text-xs text-emerald-600 mt-1">
-                <?= !empty($tenants) ? 'Active tenants currently renting units.' : 'No tenants added yet.' ?>
+                Tenants currently renting units.
             </p>
         </div>
         <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -121,52 +156,26 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
 </div>
 
 
-<!-- Maintenance Requests -->
-<div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card">
+<!-- *** NEW: PENDING APPLICATIONS CARD *** -->
+<a href="../landlordApplications.php" class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 property-card hover:bg-slate-50 transition-colors">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-slate-600 text-sm font-medium">Maintenance Requests</p>
+            <p class="text-slate-600 text-sm font-medium">Pending Applications</p>
             <p class="text-3xl font-bold text-slate-800 mt-1">
-                <?= isset($maintenanceRequests) ? count($maintenanceRequests) : 0 ?>
+                <?= $pendingTenantApps ?>
             </p>
-            <p class="text-xs text-orange-600 mt-1">
-                <?= isset($pendingRequests) ? $pendingRequests : 0 ?> pending
+            <p class="text-xs <?= $pendingTenantApps > 0 ? 'text-orange-600' : 'text-slate-600' ?> mt-1">
+                Tenants awaiting your approval.
             </p>
         </div>
 
-        <div class="flex flex-col items-center gap-2">
-            <!-- Icon -->
-            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066
-                          c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572
-                          c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573
-                          c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065
-                          c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066
-                          c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572
-                          c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573
-                          c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-            </div>
-
-            <!-- View / Manage Button -->
-            <?php if ($_SESSION['role'] === 'Landlord'): ?>
-                <a href="../manageMaintenance.php"
-                   class="text-sm px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-                   Manage
-                </a>
-            <?php else: ?>
-                <a href="../tenantMaintenance.php"
-                   class="text-sm px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-                   View
-                </a>
-            <?php endif; ?>
+        <div class="w-12 h-12 <?= $pendingTenantApps > 0 ? 'bg-orange-100' : 'bg-gray-100' ?> rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 <?= $pendingTenantApps > 0 ? 'text-orange-600' : 'text-gray-500' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
         </div>
     </div>
-</div>
+</a>
 
 
 
@@ -175,11 +184,11 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <div class="flex items-center justify-between">
         <div>
             <p class="text-slate-600 text-sm font-medium">Total Cash Earned</p>
-            <p class="text-3xl font-bold text-slate-800 mt-1">
-                ₱<?= isset($totalEarnings) ? number_format($totalEarnings, 2) : '0.00' ?>
+           <p class="text-3xl font-bold text-slate-800 mt-1">
+                ₱<?= number_format($totalEarnings, 2) ?>
             </p>
             <p class="text-xs text-purple-600 mt-1">
-                From confirmed tenant payments
+                From confirmed tenants payments (<?= count($getPaymentsByTenant) ?> total records)
             </p>
         </div>
 
@@ -191,8 +200,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         </div>
     </div>
 </div>
-
-
 
 
 </div>
@@ -226,8 +233,8 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <?php if (!empty($properties)): ?>
       <?php foreach ($properties as $property): ?>
         <div class="group p-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50
-                    border border-slate-200 rounded-2xl hover:shadow-lg hover:border-blue-300
-                    transition-all duration-300 cursor-pointer">
+                   border border-slate-200 rounded-2xl hover:shadow-lg hover:border-blue-300
+                   transition-all duration-300 cursor-pointer">
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <h4 class="font-bold text-slate-800 text-lg mb-2 group-hover:text-blue-700 transition-colors">
@@ -290,6 +297,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
       My Tenants
     </h3>
 
+
     <a href="../manageTenants.php"
       class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg flex items-center gap-2 transition-all duration-200">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -303,7 +311,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
   <!-- Tenant List -->
   <div class="space-y-4">
     <?php if (!empty($tenants)): ?>
-      <?php foreach ($tenants as $tenant): ?>
+      <?php foreach (array_slice($tenants, 0, 3) as $tenant): // Show only first 3 tenants ?>
         <div class="tenant-card p-5 border border-emerald-200 rounded-2xl hover:shadow-md transition-all duration-200">
           <div class="flex items-center justify-between">
             <div class="flex-1">
@@ -321,15 +329,30 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
             <!-- Tenant Status -->
             <div class="flex items-center gap-2">
               <?php
-                $statusClass = 'bg-emerald-500';
-                $statusText = 'Active';
-                if (!empty($tenant['status']) && strtolower($tenant['status']) === 'inactive') {
-                  $statusClass = 'bg-slate-400';
-                  $statusText = 'Inactive';
+                // Use $tenant['status'] from the new getTenantsInfo()
+                $statusClass = 'bg-slate-400';
+                $statusText = 'Inactive';
+                if (!empty($tenant['status']) && strtolower($tenant['status']) === 'approved') {
+                    // Check if they are on an active lease
+                    $isOnActiveLease = false;
+                    foreach($leases as $lease) {
+                        if ($lease['tenant_name'] === $tenant['full_name'] && $lease['lease_status'] === 'Active') {
+                            $isOnActiveLease = true;
+                            break;
+                        }
+                    }
+                    
+                    if ($isOnActiveLease) {
+                        $statusClass = 'bg-emerald-500';
+                        $statusText = 'Active';
+                    } else {
+                        $statusClass = 'bg-yellow-500';
+                        $statusText = 'Approved'; // Approved but no active lease
+                    }
                 }
               ?>
-              <div class="w-3 h-3 <?= $statusClass ?> rounded-full animate-pulse"></div>
-              <span class="text-xs font-medium <?= $statusClass === 'bg-emerald-500' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600 bg-slate-100' ?> px-2 py-1 rounded-full">
+              <div class="w-3 h-3 <?= $statusClass ?> rounded-full <?= $statusClass === 'bg-emerald-500' ? 'animate-pulse' : '' ?>"></div>
+              <span class="text-xs font-medium <?= str_replace('bg-', 'bg-', str_replace('-500', '-100', $statusClass)) . ' ' . str_replace('bg-', 'text-', str_replace('-500', '-700', $statusClass)) ?> px-2 py-1 rounded-full">
                 <?= $statusText ?>
               </span>
             </div>
@@ -352,7 +375,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     <?php endif; ?>
   </div>
 </section>
-
 
 <!-- Lease Agreements + Maintenance Requests -->
 
@@ -585,7 +607,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
         $senderName = $msg['sender_name'] ?? 'Landlord';
         $message = $msg['message'] ?? '(No message)';
         $dateSent = $msg['date_sent'] ?? 'N/A';
-        $status = $msg['message_status'] ?? 'Pending';
       ?>
       <div class="p-4 border border-indigo-200 rounded-2xl hover:shadow-md transition-all duration-200">
         <div class="flex justify-between items-start">
@@ -600,14 +621,7 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
               Date: <?= htmlspecialchars($dateSent) ?>
             </p>
           </div>
-          <span class="px-3 py-1 text-xs rounded-full font-medium
-            <?= $status === 'Pending'
-              ? 'bg-amber-100 text-amber-700'
-              : ($status === 'Completed'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-100 text-slate-600') ?>">
-            <?= htmlspecialchars($status) ?>
-          </span>
+
         </div>
       </div>
     <?php endforeach; ?>
@@ -624,7 +638,6 @@ unset($_SESSION['landlord_success'], $_SESSION['landlord_error']);
     </div>
   <?php endif; ?>
 </div>
-
 
 </main>
 
