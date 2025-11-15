@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     unset($_SESSION['verified_phone']);
     $_SESSION['success'] = "Password successfully reset! Please log in.";
 
-    header("Location: login_page.php");
+    header("Location: login_page_user.php");
     exit;
 }
 ?>

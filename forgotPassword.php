@@ -150,7 +150,7 @@ ob_end_flush(); // output any buffered HTML safely
       <!-- Back to Login -->
       <div class="mt-6 text-sm text-center text-slate-600">
         <p>Remembered your password? 
-          <a href="login_page.php" class="text-blue-700 hover:underline font-medium">Log in here</a>
+          <a href="login_page_user.php" class="text-blue-700 hover:underline font-medium">Log in here</a>
         </p>
       </div>
     </div>
